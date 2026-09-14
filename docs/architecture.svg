@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 330" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="13">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1b2126"/>
+    </marker>
+  </defs>
+  <rect width="860" height="330" fill="#f6f7f5"/>
+
+  <!-- browser -->
+  <rect x="20" y="110" width="120" height="70" rx="8" fill="#ffffff" stroke="#1b2126" stroke-width="1.4"/>
+  <text x="80" y="140" text-anchor="middle" fill="#1b2126" font-weight="600">Phone</text>
+  <text x="80" y="160" text-anchor="middle" fill="#4f5a62" font-size="11">React PWA</text>
+
+  <!-- web (nginx) -->
+  <rect x="190" y="110" width="110" height="70" rx="8" fill="#ffffff" stroke="#1b2126" stroke-width="1.4"/>
+  <text x="245" y="140" text-anchor="middle" fill="#1b2126" font-weight="600">web</text>
+  <text x="245" y="160" text-anchor="middle" fill="#4f5a62" font-size="11">nginx, static + /api</text>
+  <line x1="140" y1="145" x2="188" y2="145" stroke="#1b2126" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <text x="164" y="134" text-anchor="middle" fill="#4f5a62" font-size="11">https</text>
+
+  <!-- api -->
+  <rect x="350" y="90" width="140" height="110" rx="8" fill="#d9ebea" stroke="#0f6b6b" stroke-width="1.6"/>
+  <text x="420" y="118" text-anchor="middle" fill="#1b2126" font-weight="600">api</text>
+  <text x="420" y="138" text-anchor="middle" fill="#4f5a62" font-size="11">Spring Boot, Java 21</text>
+  <text x="420" y="156" text-anchor="middle" fill="#4f5a62" font-size="11">auth · groups · expressions</text>
+  <text x="420" y="172" text-anchor="middle" fill="#4f5a62" font-size="11">notifications · outbox</text>
+  <line x1="300" y1="145" x2="348" y2="145" stroke="#1b2126" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <text x="324" y="134" text-anchor="middle" fill="#4f5a62" font-size="11">/api</text>
+
+  <!-- postgres -->
+  <rect x="350" y="240" width="140" height="60" rx="8" fill="#ffffff" stroke="#1b2126" stroke-width="1.4"/>
+  <text x="420" y="266" text-anchor="middle" fill="#1b2126" font-weight="600">PostgreSQL</text>
+  <text x="420" y="284" text-anchor="middle" fill="#4f5a62" font-size="11">Flyway owns the schema</text>
+  <line x1="420" y1="200" x2="420" y2="238" stroke="#1b2126" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <text x="432" y="224" fill="#4f5a62" font-size="11">change + outbox row, one transaction</text>
+
+  <!-- kafka -->
+  <rect x="560" y="110" width="110" height="70" rx="8" fill="#ffffff" stroke="#1b2126" stroke-width="1.4"/>
+  <text x="615" y="140" text-anchor="middle" fill="#1b2126" font-weight="600">Kafka</text>
+  <text x="615" y="160" text-anchor="middle" fill="#4f5a62" font-size="11">notifications topic</text>
+  <line x1="490" y1="145" x2="558" y2="145" stroke="#1b2126" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <text x="524" y="134" text-anchor="middle" fill="#4f5a62" font-size="11">outbox relay</text>
+
+  <!-- notifier -->
+  <rect x="720" y="110" width="120" height="70" rx="8" fill="#ffffff" stroke="#1b2126" stroke-width="1.4"/>
+  <text x="780" y="140" text-anchor="middle" fill="#1b2126" font-weight="600">notifier</text>
+  <text x="780" y="160" text-anchor="middle" fill="#4f5a62" font-size="11">Kotlin</text>
+  <line x1="670" y1="145" x2="718" y2="145" stroke="#1b2126" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <text x="694" y="134" text-anchor="middle" fill="#4f5a62" font-size="11">consume</text>
+
+  <!-- email -->
+  <rect x="720" y="240" width="120" height="60" rx="8" fill="#ffffff" stroke="#1b2126" stroke-width="1.4"/>
+  <text x="780" y="266" text-anchor="middle" fill="#1b2126" font-weight="600">Email</text>
+  <text x="780" y="284" text-anchor="middle" fill="#4f5a62" font-size="11">SMTP, or Mailpit on the demo</text>
+  <line x1="780" y1="180" x2="780" y2="238" stroke="#1b2126" stroke-width="1.3" marker-end="url(#arrow)"/>
+
+  <!-- in-app bell -->
+  <path d="M350,120 L300,120 L300,60 L120,60 L120,108" fill="none" stroke="#0f6b6b" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+  <text x="210" y="52" text-anchor="middle" fill="#0f6b6b" font-size="11">in-app bell: rows written in the same transaction, no Kafka</text>
+
+  <text x="20" y="318" fill="#4f5a62" font-size="11">One Docker Compose stack. The same stack runs twice on one server: the family instance and the public demo.</text>
+</svg>

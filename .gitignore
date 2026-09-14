@@ -9,3 +9,4 @@ dist/
 .env
 uploads/
 *.tsbuildinfo
+deploy/*.env

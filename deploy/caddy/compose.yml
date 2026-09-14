@@ -1,0 +1,29 @@
+# The one public entry point. Joins the networks of both instances and routes by host
+# name; Caddy obtains and renews the certificates itself.
+#
+#   docker compose -p caddy up -d
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+    networks:
+      - family
+      - demo
+    restart: unless-stopped
+
+networks:
+  family:
+    external: true
+    name: family_default
+  demo:
+    external: true
+    name: demo_default
+
+volumes:
+  caddy-data:

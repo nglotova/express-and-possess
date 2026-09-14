@@ -5,6 +5,8 @@ Built for one family, published as a portfolio project.
 
 Specification: [docs/spec-v3.html](docs/spec-v3.html). Build order: [docs/plan.md](docs/plan.md).
 
+![Architecture](docs/architecture.svg)
+
 ## Parts
 
 | Module | What it is |
@@ -34,6 +36,15 @@ conditional update, `UPDATE ... WHERE implementer_id IS NULL AND status = 'EXPRE
 the database changes a row for exactly one of them; the other gets zero rows and a 409.
 No locks, no retries. `TakeCareConcurrencyTest` fires twenty members at once and asserts
 one winner.
+
+## The demo
+
+The same stack runs twice on one server: the private family instance and a public demo
+seeded with a fictional family. The demo's login page has "Log in as Alice / Bob / Carol"
+buttons, its emails land in a Mailpit inbox reviewers can open, and everything is wiped
+and reseeded every night. Deployment: [docs/deploy.md](docs/deploy.md).
+
+To run the demo mode locally, start the API with `APP_DEMO_ENABLED=true`.
 
 ## Run locally
 

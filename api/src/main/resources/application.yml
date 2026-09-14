@@ -34,9 +34,14 @@ app:
   outbox-poll-interval: 1s
   # Comma-separated. Register with one of these addresses to get the administration page.
   admin-emails: ${APP_ADMIN_EMAILS:}
+  demo:
+    enabled: ${APP_DEMO_ENABLED:false}
+    reset-cron: "0 0 3 * * *"
+    password: demo-password
 
 server:
   port: 8080
+  forward-headers-strategy: ${SERVER_FORWARD_HEADERS_STRATEGY:none}
   servlet:
     session:
       cookie:

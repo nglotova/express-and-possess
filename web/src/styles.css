@@ -635,3 +635,11 @@ select {
   background: var(--paper-2);
   color: var(--ink);
 }
+
+/* ---- demo ------------------------------------------------------------------ */
+
+.demo {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}

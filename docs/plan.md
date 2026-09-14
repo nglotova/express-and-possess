@@ -112,6 +112,11 @@ Forcing a status back to Expressed clears the implementer; any other status need
 Seed data with a fictional family, "Log in as Alice / Bob / Carol" buttons on the demo
 build, nightly reset job, Compose file for a small server, README with architecture diagram
 and a 30-second GIF. Résumé line updated to link the demo.
+Built 2026-09-14 except for the parts that need a server: demo mode (seed, "log in as",
+nightly reset) with its own test context; Dockerfiles for api, notifier and web; the
+production Compose stack that runs twice behind Caddy (`deploy/`); `docs/deploy.md`;
+architecture diagram in the README. Still to do once the host exists: run the steps in
+`docs/deploy.md`, record the GIF, put the real URL into `docs/resume-line.md` and the résumé.
 
 ## What is needed from Natasha
 

@@ -33,3 +33,12 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  images:
+    runs-on: ubuntu-latest
+    needs: [api, web]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --target api -t express-api .
+      - run: docker build --target notifier -t express-notifier .
+      - run: docker build -t express-web web

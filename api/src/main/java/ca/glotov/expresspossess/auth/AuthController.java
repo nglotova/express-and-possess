@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/auth")
-class AuthController {
+public class AuthController {
 
     private final AccountService accounts;
     private final AuthenticationManager authenticationManager;
@@ -49,7 +49,7 @@ class AuthController {
                            @NotBlank @Size(max = 100) String name) {
     }
 
-    record LoginRequest(@NotBlank String email, @NotBlank String password) {
+    public record LoginRequest(@NotBlank String email, @NotBlank String password) {
     }
 
     record PasswordResetRequest(@NotBlank @Email String email) {
@@ -77,7 +77,7 @@ class AuthController {
     }
 
     @PostMapping("/login")
-    UserResponse login(@Valid @RequestBody LoginRequest body,
+    public UserResponse login(@Valid @RequestBody LoginRequest body,
                        HttpServletRequest request, HttpServletResponse response) {
         AuthenticatedUser principal = logIn(body.email(), body.password(), request, response);
         return UserResponse.of(accounts.get(principal.getId()));
