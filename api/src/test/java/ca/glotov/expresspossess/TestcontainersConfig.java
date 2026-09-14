@@ -30,10 +30,11 @@ public class TestcontainersConfig {
     }
 
     @Bean
-    DynamicPropertyRegistrar mailProperties(GenericContainer<?> mailpit) {
+    DynamicPropertyRegistrar testProperties(GenericContainer<?> mailpit) {
         return registry -> {
             registry.add("spring.mail.host", mailpit::getHost);
             registry.add("spring.mail.port", () -> mailpit.getMappedPort(1025));
+            registry.add("app.uploads-dir", () -> "target/test-uploads");
         };
     }
 

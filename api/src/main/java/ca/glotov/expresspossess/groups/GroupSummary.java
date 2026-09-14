@@ -1,10 +1,13 @@
 package ca.glotov.expresspossess.groups;
 
 /**
- * One row of the My Groups page. The attention flags (untaken expressions, expressions the
- * member is implementing) arrive with the expressions milestone.
+ * One row of the My Groups page.
+ *
+ * @param hasUntaken   the flashing "!": expressions nobody has taken care of yet
+ * @param implementing the warning sign: the member is implementing something here
  */
-public record GroupSummary(Long id, String name, String ownerName, Status status, GroupMemberRole myRole) {
+public record GroupSummary(Long id, String name, String ownerName, Status status, GroupMemberRole myRole,
+                           boolean hasUntaken, boolean implementing) {
 
     /** The status as the spec names it. */
     public enum Status {

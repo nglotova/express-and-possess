@@ -17,12 +17,17 @@ spring:
   mvc:
     problemdetails:
       enabled: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
 
 app:
   base-url: ${APP_BASE_URL:http://localhost:5173}
   mail-from: ${MAIL_FROM:no-reply@expresspossess.local}
   password-reset-ttl: 1h
   invitation-ttl: 7d
+  uploads-dir: ${UPLOADS_DIR:./uploads}
 
 server:
   port: 8080

@@ -6,6 +6,8 @@ import ca.glotov.expresspossess.common.ApiException;
 import ca.glotov.expresspossess.common.AppProperties;
 import ca.glotov.expresspossess.common.EmailService;
 import ca.glotov.expresspossess.common.Tokens;
+import ca.glotov.expresspossess.expressions.ExpressionQueries;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +34,8 @@ public class GroupService {
     private final EmailService email;
     private final AppProperties properties;
     private final Clock clock;
+    private final ExpressionQueries expressions;
+    private final ApplicationEventPublisher events;
 
     GroupService(GroupRepository groups,
                  GroupMemberRepository members,
@@ -39,7 +43,9 @@ public class GroupService {
                  UserRepository users,
                  EmailService email,
                  AppProperties properties,
-                 Clock clock) {
+                 Clock clock,
+                 ExpressionQueries expressions,
+                 ApplicationEventPublisher events) {
         this.groups = groups;
         this.members = members;
         this.invitations = invitations;
@@ -47,6 +53,8 @@ public class GroupService {
         this.email = email;
         this.properties = properties;
         this.clock = clock;
+        this.expressions = expressions;
+        this.events = events;
     }
 
     // ---- reading -------------------------------------------------------------------
@@ -58,8 +66,10 @@ public class GroupService {
                         group.getId(),
                         group.getName(),
                         users.findById(group.getOwnerId()).map(User::getName).orElse("?"),
-                        GroupSummary.statusOf(group, groups.hasExpressions(group.getId())),
-                        memberOf(group.getId(), userId).getRole()))
+                        GroupSummary.statusOf(group, expressions.groupHasExpressions(group.getId())),
+                        memberOf(group.getId(), userId).getRole(),
+                        expressions.groupHasUntaken(group.getId()),
+                        expressions.isImplementingIn(group.getId(), userId)))
                 .toList();
     }
 
@@ -68,12 +78,14 @@ public class GroupService {
         Group group = visibleGroup(groupId);
         GroupMember me = memberOf(groupId, userId);
         boolean admin = me.isAdmin();
+        var creators = expressions.creatorsIn(groupId);
         return new GroupDetail(
                 group.getId(),
                 group.getName(),
-                GroupSummary.statusOf(group, groups.hasExpressions(groupId)),
+                GroupSummary.statusOf(group, expressions.groupHasExpressions(groupId)),
                 me.getRole(),
-                members.findMembers(groupId),
+                members.findMembers(groupId).stream()
+                        .map(m -> m.withHasExpressions(creators.contains(m.userId()))).toList(),
                 admin ? invitations.findByGroupIdAndAcceptedAtIsNull(groupId).stream()
                         .map(i -> new GroupDetail.InvitationView(i.getId(), i.getEmail())).toList()
                         : List.of(),
@@ -203,6 +215,7 @@ public class GroupService {
             throw ApiException.badRequest("The admin cannot remove themself; hand the group over first");
         }
         members.delete(memberOf(groupId, userId));
+        events.publishEvent(new MemberLeftEvent(groupId, userId));
     }
 
     public void leave(Long groupId, Long userId) {
@@ -211,6 +224,7 @@ public class GroupService {
             throw ApiException.badRequest("The admin cannot leave; hand the group over first");
         }
         members.delete(me);
+        events.publishEvent(new MemberLeftEvent(groupId, userId));
     }
 
     public void makeAdmin(Long groupId, Long adminId, Long userId) {

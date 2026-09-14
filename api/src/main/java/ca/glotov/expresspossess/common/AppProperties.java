@@ -11,7 +11,9 @@ import java.time.Duration;
  * @param mailFrom         sender address for every email
  * @param passwordResetTtl how long a password reset link stays valid
  * @param invitationTtl    how long a group invitation link stays valid
+ * @param uploadsDir       directory for uploaded pictures
  */
 @ConfigurationProperties(prefix = "app")
-public record AppProperties(String baseUrl, String mailFrom, Duration passwordResetTtl, Duration invitationTtl) {
+public record AppProperties(String baseUrl, String mailFrom, Duration passwordResetTtl, Duration invitationTtl,
+                            String uploadsDir) {
 }

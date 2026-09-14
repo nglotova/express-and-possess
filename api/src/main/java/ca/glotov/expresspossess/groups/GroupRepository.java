@@ -14,8 +14,4 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
     List<Group> findVisibleTo(@Param("userId") Long userId);
 
     Optional<Group> findByShareToken(String shareToken);
-
-    /** True once any expression has ever been created in the group: "Working" in the spec. */
-    @Query(value = "select exists (select 1 from expressions where group_id = :groupId)", nativeQuery = true)
-    boolean hasExpressions(@Param("groupId") Long groupId);
 }
