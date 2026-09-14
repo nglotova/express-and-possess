@@ -81,6 +81,11 @@ count; the Kotlin `notifier` consumes the topic and sends email through Mailpit.
 flashing `!` and warning icon on My Groups are computed from the same data. Also from M2:
 the in-app notification when an existing account is added to a group.
 Review: the outbox publisher and the README paragraph that explains why Kafka is here.
+Built 2026-09-14. One change to the spec, section 9: Incognito is chosen when Take Care is
+pressed (a checkbox next to the button), not afterwards, so the "took care" notification can
+say "Someone" from the start. The implementer can still change it later. In-app rows are
+written in the change's transaction; only the external channels go through Kafka. One topic,
+`notifications`, carries both expression and group events.
 
 ### M5. Web app
 

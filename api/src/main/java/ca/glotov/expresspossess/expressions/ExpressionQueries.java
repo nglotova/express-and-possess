@@ -3,6 +3,7 @@ package ca.glotov.expresspossess.expressions;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -39,5 +40,15 @@ public class ExpressionQueries {
     /** The mark on the Group users page. */
     public Set<Long> creatorsIn(Long groupId) {
         return expressions.creatorIdsIn(groupId);
+    }
+
+    /** What a notification needs to know about an expression. */
+    public record Facts(Long id, Long groupId, Long creatorId, Long implementerId, boolean incognito,
+                        ExpressionStatus status, String description) {
+    }
+
+    public Optional<Facts> facts(Long expressionId) {
+        return expressions.findById(expressionId).map(e -> new Facts(e.getId(), e.getGroupId(), e.getCreatorId(),
+                e.getImplementerId(), e.isIncognito(), e.getStatus(), e.getDescription()));
     }
 }

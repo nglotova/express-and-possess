@@ -137,14 +137,15 @@ public class ExpressionService {
     /**
      * Take Care. The claim is a single conditional update, so two members pressing the
      * button at the same moment cannot both win: the database changes one row for exactly
-     * one of them and the other gets 0 rows, reported here as 409.
+     * one of them and the other gets 0 rows, reported here as 409. Incognito is chosen at
+     * this moment so that the notification to the creator never names a hidden helper.
      */
-    public ExpressionView takeCare(Long id, Long userId) {
+    public ExpressionView takeCare(Long id, Long userId, boolean incognito) {
         Expression expression = editable(id, userId);
         if (expression.isCreator(userId)) {
             throw ApiException.forbidden("You cannot take care of your own wish");
         }
-        int claimed = expressions.claim(id, userId, clock.instant());
+        int claimed = expressions.claim(id, userId, incognito, clock.instant());
         if (claimed == 0) {
             throw ApiException.conflict("Someone else has already taken care of this wish");
         }

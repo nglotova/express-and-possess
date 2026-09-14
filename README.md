@@ -5,21 +5,59 @@ Built for one family, published as a portfolio project.
 
 Specification: [docs/spec-v3.html](docs/spec-v3.html). Build order: [docs/plan.md](docs/plan.md).
 
+## Parts
+
+| Module | What it is |
+|---|---|
+| `api` | Spring Boot 3, Java 21. Accounts, groups, expressions, comments, in-app notifications, and the outbox that feeds Kafka. One deployable. |
+| `notifier` | Spring Boot, Kotlin. Consumes the `notifications` topic and sends email. Telegram is planned. |
+| `web` | React, TypeScript, Vite. Mobile-first progressive web app. Not started yet. |
+
+## Why Kafka for a family of four
+
+It is not needed. A Spring application event would carry a notification from the API to an
+email sender inside one process, and for one deployment that would be the right call.
+
+Kafka is here because the project is also a portfolio piece, and it is used the way it would
+be in a system that did need it: the API never talks to Kafka inside a request. Every change
+writes an `outbox_events` row in the same database transaction as the change, and a small
+publisher relays unpublished rows to the topic and stamps them. A notification is therefore
+never sent for a change that rolled back, and never lost when the broker is down; it is
+delivered at least once, and the consumer tolerates a repeat. The in-app bell does not go
+through Kafka at all, because its rows must be consistent with the change they announce,
+so they are written in the same transaction too.
+
+## The one race worth reading
+
+Two members can press Take Care on the same wish at the same moment. The claim is one
+conditional update, `UPDATE ... WHERE implementer_id IS NULL AND status = 'EXPRESSED'`, so
+the database changes a row for exactly one of them; the other gets zero rows and a 409.
+No locks, no retries. `TakeCareConcurrencyTest` fires twenty members at once and asserts
+one winner.
+
 ## Run locally
 
 Docker Desktop must be running.
 
 ```bash
-docker compose up -d postgres mailpit
+docker compose up -d
 mvn -pl api spring-boot:run
 ```
 
-The API listens on http://localhost:8080. Emails the application sends are caught by
-Mailpit at http://localhost:8025.
+In a second terminal:
+
+```bash
+mvn -pl notifier spring-boot:run
+```
+
+The API listens on http://localhost:8080, the notifier's health endpoint on
+http://localhost:8081/actuator/health. Emails the application sends are caught by Mailpit
+at http://localhost:8025.
 
 ## Test
 
-Tests run against a real PostgreSQL started by Testcontainers, so Docker must be running.
+Tests run against a real PostgreSQL, Kafka, and Mailpit started by Testcontainers, so
+Docker must be running.
 
 ```bash
 mvn verify

@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 
 @Service
 @Transactional
@@ -41,6 +43,11 @@ public class AccountService {
             throw ApiException.conflict("An account with this email already exists");
         }
         return users.save(new User(emailAddress.trim(), passwordEncoder.encode(password), name.trim()));
+    }
+
+    @Transactional(readOnly = true)
+    public List<User> getAll(Collection<Long> ids) {
+        return users.findAllById(ids);
     }
 
     @Transactional(readOnly = true)

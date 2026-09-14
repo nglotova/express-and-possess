@@ -47,9 +47,9 @@ class InvitationsTest extends ApiTest {
                 .andExpect(jsonPath("$.outcome").value("ADDED"));
 
         getAs(andrei, "/api/groups/" + id).andExpect(status().isOk());
-        List<Mailpit.Message> mail = await().atMost(Duration.ofSeconds(10))
-                .until(() -> mailpit.messagesTo(andrei.email()), l -> !l.isEmpty());
-        assertThat(mail.get(0).subject()).isEqualTo("You were added to Family");
+        getAs(andrei, "/api/notifications")
+                .andExpect(jsonPath("$.unread").value(1))
+                .andExpect(jsonPath("$.items[0].message").value("Natasha added you to Family"));
 
         postAs(natasha, "/api/groups/" + id + "/invitations", Map.of("email", andrei.email()))
                 .andExpect(status().isConflict());

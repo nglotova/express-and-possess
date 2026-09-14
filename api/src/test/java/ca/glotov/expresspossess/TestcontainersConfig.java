@@ -7,12 +7,13 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.DynamicPropertyRegistrar;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.kafka.KafkaContainer;
 
 import java.time.Clock;
 
 /**
- * Real infrastructure for integration tests: PostgreSQL for the schema, Mailpit to catch
- * the emails the application sends. Spring caches the context, so every test class that
+ * Real infrastructure for integration tests: PostgreSQL for the schema, Kafka for the
+ * outbox relay, Mailpit to catch the emails the application sends. Spring caches the context, so every test class that
  * imports this shares one set of containers.
  */
 @TestConfiguration(proxyBeanMethods = false)
@@ -22,6 +23,12 @@ public class TestcontainersConfig {
     @ServiceConnection
     PostgreSQLContainer<?> postgres() {
         return new PostgreSQLContainer<>("postgres:17-alpine");
+    }
+
+    @Bean
+    @ServiceConnection
+    KafkaContainer kafka() {
+        return new KafkaContainer("apache/kafka-native:3.8.1");
     }
 
     @Bean

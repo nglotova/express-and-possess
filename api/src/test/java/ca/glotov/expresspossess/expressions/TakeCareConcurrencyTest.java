@@ -50,7 +50,7 @@ class TakeCareConcurrencyTest extends ApiTest {
                 results.add(pool.submit(() -> {
                     go.await();
                     try {
-                        expressions.takeCare(id, contender.id());
+                        expressions.takeCare(id, contender.id(), false);
                         return Outcome.WON;
                     } catch (ApiException e) {
                         assertThat(e.status()).isEqualTo(HttpStatus.CONFLICT);

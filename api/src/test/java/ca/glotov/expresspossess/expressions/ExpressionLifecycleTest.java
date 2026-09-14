@@ -4,7 +4,6 @@ import ca.glotov.expresspossess.ApiTest;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -224,22 +223,5 @@ class ExpressionLifecycleTest extends ApiTest {
     long wish(Member creator, long groupId, String description) throws Exception {
         return bodyOf(postAs(creator, "/api/groups/" + groupId + "/expressions", Map.of("description", description))
                 .andExpect(status().isCreated())).get("id").asLong();
-    }
-
-    static Map<String, Object> wishBody(String description, String wantedBy, JsonNode current) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("description", description);
-        body.put("wantedBy", wantedBy);
-        body.put("version", current.get("version").asLong());
-        return body;
-    }
-
-    static Map<String, Object> careBody(boolean incognito, String providingBy, boolean provided, JsonNode current) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("incognito", incognito);
-        body.put("providingBy", providingBy);
-        body.put("provided", provided);
-        body.put("version", current.get("version").asLong());
-        return body;
     }
 }

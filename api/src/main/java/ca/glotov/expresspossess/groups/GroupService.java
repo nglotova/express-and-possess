@@ -100,6 +100,17 @@ public class GroupService {
                 .orElseThrow(() -> ApiException.notFound("No such group"));
     }
 
+    /** The group's name whatever its status; for messages about it. */
+    @Transactional(readOnly = true)
+    public String nameOf(Long groupId) {
+        return groups.findById(groupId).map(Group::getName).orElse("a group");
+    }
+
+    @Transactional(readOnly = true)
+    public List<Long> memberIds(Long groupId) {
+        return members.findByIdGroupId(groupId).stream().map(GroupMember::getUserId).toList();
+    }
+
     @Transactional(readOnly = true)
     public Group activeGroupFor(Long groupId, Long userId) {
         memberOf(groupId, userId);
@@ -126,6 +137,7 @@ public class GroupService {
 
     public void close(Long groupId, Long adminId) {
         adminGroup(groupId, adminId).setStatus(GroupStatus.CLOSED);
+        events.publishEvent(new GroupChanged(GroupChanged.Type.CLOSED, groupId, null, adminId));
     }
 
     public void archive(Long groupId, Long adminId) {
@@ -152,12 +164,7 @@ public class GroupService {
                 throw ApiException.conflict(user.getName() + " is already a member");
             }
             members.save(new GroupMember(groupId, user.getId(), GroupMemberRole.MEMBER));
-            if (user.isEmailEnabled()) {
-                email.send(user.getEmail(), "You were added to " + group.getName(),
-                        "Hello " + user.getName() + ",\n\n"
-                                + inviter + " added you to the group \"" + group.getName() + "\".\n"
-                                + properties.baseUrl() + "/groups/" + groupId + "\n");
-            }
+            events.publishEvent(new GroupChanged(GroupChanged.Type.MEMBER_ADDED, groupId, user.getId(), adminId));
             return InviteOutcome.ADDED;
         }
         if (invitations.findByGroupIdAndEmailIgnoreCaseAndAcceptedAtIsNull(groupId, address).isPresent()) {
@@ -216,6 +223,7 @@ public class GroupService {
         }
         members.delete(memberOf(groupId, userId));
         events.publishEvent(new MemberLeftEvent(groupId, userId));
+        events.publishEvent(new GroupChanged(GroupChanged.Type.MEMBER_REMOVED, groupId, userId, adminId));
     }
 
     public void leave(Long groupId, Long userId) {

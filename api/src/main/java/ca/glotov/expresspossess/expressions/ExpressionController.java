@@ -45,6 +45,9 @@ class ExpressionController {
     record CommentRequest(@NotBlank @Size(max = 2000) String body) {
     }
 
+    record TakeCareRequest(boolean incognito) {
+    }
+
     @GetMapping("/groups/{groupId}/activity")
     ActivityView activity(@AuthenticationPrincipal AuthenticatedUser me, @PathVariable Long groupId) {
         return expressions.activity(groupId, me.getId());
@@ -92,8 +95,9 @@ class ExpressionController {
     }
 
     @PostMapping("/expressions/{id}/take-care")
-    ExpressionView takeCare(@AuthenticationPrincipal AuthenticatedUser me, @PathVariable Long id) {
-        return expressions.takeCare(id, me.getId());
+    ExpressionView takeCare(@AuthenticationPrincipal AuthenticatedUser me, @PathVariable Long id,
+                            @RequestBody(required = false) TakeCareRequest body) {
+        return expressions.takeCare(id, me.getId(), body != null && body.incognito());
     }
 
     @PutMapping("/expressions/{id}/care")

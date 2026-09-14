@@ -17,12 +17,13 @@ public interface ExpressionRepository extends JpaRepository<Expression, Long> {
      * one changes a row. The caller treats 0 rows as "somebody else won".
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("update Expression e set e.implementerId = :userId, "
+    @Query("update Expression e set e.implementerId = :userId, e.incognito = :incognito, "
             + "e.status = ca.glotov.expresspossess.expressions.ExpressionStatus.IN_PROCESS, "
             + "e.version = e.version + 1, e.updatedAt = :now "
             + "where e.id = :id and e.implementerId is null "
             + "and e.status = ca.glotov.expresspossess.expressions.ExpressionStatus.EXPRESSED")
-    int claim(@Param("id") Long id, @Param("userId") Long userId, @Param("now") Instant now);
+    int claim(@Param("id") Long id, @Param("userId") Long userId, @Param("incognito") boolean incognito,
+              @Param("now") Instant now);
 
     List<Expression> findByGroupIdAndCreatorIdOrderByCreatedAtDesc(Long groupId, Long creatorId);
 

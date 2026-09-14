@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -79,6 +80,26 @@ public abstract class ApiTest {
 
     protected JsonNode bodyOf(ResultActions actions) throws Exception {
         return json.readTree(actions.andReturn().getResponse().getContentAsString());
+    }
+
+    /** Body for the creator's Submit, carrying the version from the last response. */
+    protected static Map<String, Object> wishBody(String description, String wantedBy, JsonNode current) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("description", description);
+        body.put("wantedBy", wantedBy);
+        body.put("version", current.get("version").asLong());
+        return body;
+    }
+
+    /** Body for the implementer's Submit, carrying the version from the last response. */
+    protected static Map<String, Object> careBody(boolean incognito, String providingBy, boolean provided,
+                                                  JsonNode current) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("incognito", incognito);
+        body.put("providingBy", providingBy);
+        body.put("provided", provided);
+        body.put("version", current.get("version").asLong());
+        return body;
     }
 
     private MockHttpServletRequestBuilder withJson(MockHttpServletRequestBuilder builder, Map<String, ?> body)
