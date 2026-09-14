@@ -59,12 +59,18 @@ Create and edit a group, invite by email (existing account joins at once, new ad
 a one-time link), share link on and off, remove, leave, hand over admin, close, archive,
 delete. Group status New/Working computed. Membership rules from spec section 7.
 Review: the invitation flow and what happens to a removed member's expressions.
+Built 2026-09-14. Two rules from spec section 7 wait for the domains they depend on:
+releasing a removed member's implementations (M3, needs the expression service) and the
+in-app notification when an existing account is added (M4). Both are listed in the M3 and
+M4 scope below.
 
 ### M3. Expressions and comments
 
 Create, edit, delete, picture upload, the full lifecycle: Take Care as one conditional
 update, Release, Provided, Got it. Incognito everywhere including comments. The concurrency
-test: twenty threads press Take Care, one wins, nineteen get 409.
+test: twenty threads press Take Care, one wins, nineteen get 409. Also from M2: when a member
+is removed or leaves, any expression they are implementing is released; the My Groups
+attention flags and the "has created any expression" mark on Group users.
 Review: the state machine and the concurrency test. This is the interview material.
 
 ### M4. Notifications
@@ -72,7 +78,8 @@ Review: the state machine and the concurrency test. This is the interview materi
 `outbox_events` written in the same transaction as every change; a publisher relays to Kafka
 topic `expression-events`; in-app notifications table and the bell endpoint with unread
 count; the Kotlin `notifier` consumes the topic and sends email through Mailpit. The
-flashing `!` and warning icon on My Groups are computed from the same data.
+flashing `!` and warning icon on My Groups are computed from the same data. Also from M2:
+the in-app notification when an existing account is added to a group.
 Review: the outbox publisher and the README paragraph that explains why Kafka is here.
 
 ### M5. Web app

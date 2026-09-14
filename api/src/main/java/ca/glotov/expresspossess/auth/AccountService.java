@@ -3,24 +3,17 @@ package ca.glotov.expresspossess.auth;
 import ca.glotov.expresspossess.common.ApiException;
 import ca.glotov.expresspossess.common.AppProperties;
 import ca.glotov.expresspossess.common.EmailService;
+import ca.glotov.expresspossess.common.Tokens;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.Base64;
-import java.util.HexFormat;
 
 @Service
 @Transactional
 public class AccountService {
-
-    private static final SecureRandom RANDOM = new SecureRandom();
 
     private final UserRepository users;
     private final PasswordResetTokenRepository resetTokens;
@@ -76,9 +69,9 @@ public class AccountService {
      */
     public void requestPasswordReset(String emailAddress) {
         users.findByEmailIgnoreCase(emailAddress).ifPresent(user -> {
-            String token = newToken();
+            String token = Tokens.random();
             Instant expires = clock.instant().plus(properties.passwordResetTtl());
-            resetTokens.save(new PasswordResetToken(user, hash(token), expires));
+            resetTokens.save(new PasswordResetToken(user, Tokens.hash(token), expires));
             String link = properties.baseUrl() + "/reset-password?token=" + token;
             email.send(user.getEmail(), "Reset your Express & Possess password",
                     "Hello " + user.getName() + ",\n\n"
@@ -91,25 +84,10 @@ public class AccountService {
 
     public void confirmPasswordReset(String token, String newPassword) {
         Instant now = clock.instant();
-        PasswordResetToken reset = resetTokens.findByTokenHash(hash(token))
+        PasswordResetToken reset = resetTokens.findByTokenHash(Tokens.hash(token))
                 .filter(t -> t.isUsable(now))
                 .orElseThrow(() -> ApiException.badRequest("This reset link is invalid or has expired"));
         reset.getUser().setPasswordHash(passwordEncoder.encode(newPassword));
         reset.markUsed(now);
-    }
-
-    private static String newToken() {
-        byte[] bytes = new byte[32];
-        RANDOM.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-    }
-
-    static String hash(String token) {
-        try {
-            byte[] digest = MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(digest);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException(e);
-        }
     }
 }

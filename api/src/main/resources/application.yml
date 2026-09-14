@@ -22,6 +22,7 @@ app:
   base-url: ${APP_BASE_URL:http://localhost:5173}
   mail-from: ${MAIL_FROM:no-reply@expresspossess.local}
   password-reset-ttl: 1h
+  invitation-ttl: 7d
 
 server:
   port: 8080
