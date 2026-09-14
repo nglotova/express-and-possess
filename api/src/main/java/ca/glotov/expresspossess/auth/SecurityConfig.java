@@ -1,6 +1,7 @@
 package ca.glotov.expresspossess.auth;
 
 import ca.glotov.expresspossess.common.AppProperties;
+import jakarta.servlet.DispatcherType;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,6 +47,8 @@ class SecurityConfig {
                         .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
                 .addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class)
                 .authorizeHttpRequests(auth -> auth
+                        // The error dispatch must pass, or a 403 turns into a bare 401 on its way out.
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers("/api/auth/**", "/actuator/health").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/invitations/*", "/api/join/*").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

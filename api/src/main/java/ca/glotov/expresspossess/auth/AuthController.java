@@ -16,6 +16,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,6 +56,15 @@ class AuthController {
     }
 
     record PasswordResetConfirm(@NotBlank String token, @NotBlank @Size(min = 8, max = 72) String newPassword) {
+    }
+
+    /**
+     * Does nothing except set the CSRF cookie. The web app calls it before its first write
+     * of a visit, which may be the registration itself.
+     */
+    @GetMapping("/csrf")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void csrf() {
     }
 
     @PostMapping("/register")

@@ -93,6 +93,11 @@ React pages in the order of the wireframes: login and register, My Groups, creat
 group, group activity, expression, group users and a user's expressions, profile,
 notifications bell. Router-based navigation with one parent link per page. PWA manifest.
 Review: on a phone, against the wireframes.
+Built 2026-09-14. Verified in a phone-sized browser: register, My Groups, group activity,
+expression page. Two fixes came out of that run and are in the API: the error dispatch is
+permitted in the security config, and `GET /api/auth/csrf` lets the web app obtain the CSRF
+cookie before its first write. Not built on purpose: the Open Graph preview (left for later
+in the spec).
 
 ### M6. Administration page
 

@@ -11,7 +11,7 @@ Specification: [docs/spec-v3.html](docs/spec-v3.html). Build order: [docs/plan.m
 |---|---|
 | `api` | Spring Boot 3, Java 21. Accounts, groups, expressions, comments, in-app notifications, and the outbox that feeds Kafka. One deployable. |
 | `notifier` | Spring Boot, Kotlin. Consumes the `notifications` topic and sends email. Telegram is planned. |
-| `web` | React, TypeScript, Vite. Mobile-first progressive web app. Not started yet. |
+| `web` | React, TypeScript, Vite. Mobile-first progressive web app; installs to the phone's home screen. |
 
 ## Why Kafka for a family of four
 
@@ -50,6 +50,14 @@ In a second terminal:
 mvn -pl notifier spring-boot:run
 ```
 
+And the web app, which proxies `/api` to the API:
+
+```bash
+cd web && npm install && npm run dev
+```
+
+Open http://localhost:5173 on a phone-sized window.
+
 The API listens on http://localhost:8080, the notifier's health endpoint on
 http://localhost:8081/actuator/health. Emails the application sends are caught by Mailpit
 at http://localhost:8025.
@@ -61,4 +69,10 @@ Docker must be running.
 
 ```bash
 mvn verify
+```
+
+Web app tests and type check:
+
+```bash
+cd web && npm test && npm run typecheck
 ```

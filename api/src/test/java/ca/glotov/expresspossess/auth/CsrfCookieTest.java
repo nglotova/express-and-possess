@@ -27,8 +27,8 @@ class CsrfCookieTest {
 
     @Test
     void theFirstResponseCarriesTheCsrfCookieForTheWebApp() throws Exception {
-        mvc.perform(get("/actuator/health"))
-                .andExpect(status().isOk())
+        mvc.perform(get("/api/auth/csrf"))
+                .andExpect(status().isNoContent())
                 .andExpect(cookie().exists("XSRF-TOKEN"))
                 .andExpect(cookie().httpOnly("XSRF-TOKEN", false));
     }
