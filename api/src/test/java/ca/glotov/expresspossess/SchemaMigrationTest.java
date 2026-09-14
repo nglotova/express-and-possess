@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
-@Import(PostgresTestSupport.class)
+@Import(TestcontainersConfig.class)
 class SchemaMigrationTest {
 
     @Autowired
