@@ -592,3 +592,46 @@ button.link.danger {
     flex-direction: column;
   }
 }
+
+/* ---- administration -------------------------------------------------------- */
+
+.list-item.stackable {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.list-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.admin-expressions {
+  margin-top: 0.5rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.force-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.inline-form.three {
+  grid-template-columns: auto 1fr auto;
+}
+
+select {
+  font: inherit;
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--paper-2);
+  color: var(--ink);
+}

@@ -102,6 +102,10 @@ in the spec).
 ### M6. Administration page
 
 Users, groups including archived, force an expression's status with a reason.
+Built 2026-09-14. The first administrator is whoever registers with an address listed in
+`APP_ADMIN_EMAILS`; after that, administrators promote each other on the page. The role is
+read into the session at login, so a promotion or revocation takes effect at the next login.
+Forcing a status back to Expressed clears the implementer; any other status needs one.
 
 ### M7. Demo and deployment
 

@@ -42,7 +42,37 @@ public class AccountService {
         if (users.existsByEmailIgnoreCase(emailAddress)) {
             throw ApiException.conflict("An account with this email already exists");
         }
-        return users.save(new User(emailAddress.trim(), passwordEncoder.encode(password), name.trim()));
+        User user = new User(emailAddress.trim(), passwordEncoder.encode(password), name.trim());
+        if (properties.adminEmails().stream().anyMatch(a -> a.trim().equalsIgnoreCase(user.getEmail()))) {
+            user.setRole(Role.ADMIN);
+        }
+        return users.save(user);
+    }
+
+    // ---- for the administration page -----------------------------------------------
+
+    @Transactional(readOnly = true)
+    public List<User> search(String query) {
+        String q = query == null ? "" : query.trim();
+        return users.search(q);
+    }
+
+    public User setEnabled(Long id, Long adminId, boolean enabled) {
+        if (id.equals(adminId) && !enabled) {
+            throw ApiException.badRequest("You cannot disable your own account");
+        }
+        User user = get(id);
+        user.setEnabled(enabled);
+        return user;
+    }
+
+    public User setRole(Long id, Long adminId, Role role) {
+        if (id.equals(adminId) && role != Role.ADMIN) {
+            throw ApiException.badRequest("You cannot take the administrator role away from yourself");
+        }
+        User user = get(id);
+        user.setRole(role);
+        return user;
     }
 
     @Transactional(readOnly = true)

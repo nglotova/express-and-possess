@@ -58,6 +58,17 @@ public abstract class ApiTest {
                 (MockHttpSession) result.getRequest().getSession(false));
     }
 
+    /** A fresh session for the same account, for example after its role changed. */
+    protected Member login(Member who) throws Exception {
+        MvcResult result = mvc.perform(post("/api/auth/login").with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of(
+                                "email", who.email(), "password", "correct horse battery"))))
+                .andExpect(status().isOk())
+                .andReturn();
+        return new Member(who.id(), who.email(), who.name(), (MockHttpSession) result.getRequest().getSession(false));
+    }
+
     protected ResultActions getAs(Member who, String path) throws Exception {
         return mvc.perform(get(path).session(who.session()));
     }

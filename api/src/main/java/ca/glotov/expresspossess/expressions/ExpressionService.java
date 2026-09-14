@@ -200,6 +200,43 @@ public class ExpressionService {
         return changed(id, userId);
     }
 
+    // ---- for the administration page -----------------------------------------------
+
+    /** A system administrator sees any expression, with the real names. */
+    @Transactional(readOnly = true)
+    public ExpressionView adminGet(Long id) {
+        Expression expression = expressions.findById(id)
+                .orElseThrow(() -> ApiException.notFound("No such expression"));
+        return view(expression, new Viewer(null, true), comments.findByExpressionIdOrderByCreatedAt(id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ExpressionView> adminListInGroup(Long groupId) {
+        return rows(expressions.findByGroupIdOrderByCreatedAtDesc(groupId), new Viewer(null, true));
+    }
+
+    /**
+     * Forces a stuck expression into a status. Going back to Expressed clears the
+     * implementer; any other status needs one, because the schema forbids an implemented
+     * wish without an implementer. The reason is written as a system note for everyone.
+     */
+    public ExpressionView forceStatus(Long id, Long adminId, ExpressionStatus status, String reason) {
+        Expression expression = expressions.findById(id)
+                .orElseThrow(() -> ApiException.notFound("No such expression"));
+        if (status == EXPRESSED) {
+            expression.release();
+        } else {
+            if (expression.getImplementerId() == null) {
+                throw ApiException.conflict("Nobody is taking care of this wish; set it to Expressed instead");
+            }
+            expression.forceStatus(status);
+        }
+        String admin = users.findById(adminId).map(User::getName).orElse("An administrator");
+        comments.save(Comment.systemNote(id, admin + " set the status to " + status + ": " + reason.trim()));
+        expressions.flush();
+        return adminGet(id);
+    }
+
     // ---- building views ------------------------------------------------------------
 
     /**

@@ -159,6 +159,11 @@ public class Expression {
         touch();
     }
 
+    void forceStatus(ExpressionStatus status) {
+        this.status = status;
+        touch();
+    }
+
     void release() {
         this.implementerId = null;
         this.incognito = false;

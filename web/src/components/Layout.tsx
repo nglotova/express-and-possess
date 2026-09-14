@@ -22,6 +22,11 @@ export function Layout({ me, children }: { me: User; children: ReactNode }) {
             <span aria-hidden="true">🔔</span>
             {count > 0 && <span className="badge">{count > 99 ? "99+" : count}</span>}
           </Link>
+          {me.role === "ADMIN" && (
+            <Link to="/admin" className="me" aria-label="Administration">
+              ⚙
+            </Link>
+          )}
           <Link to="/profile" className="me">
             {me.name}
           </Link>

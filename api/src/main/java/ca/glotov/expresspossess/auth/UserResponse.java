@@ -1,8 +1,9 @@
 package ca.glotov.expresspossess.auth;
 
-public record UserResponse(Long id, String email, String name, Role role, boolean emailEnabled) {
+public record UserResponse(Long id, String email, String name, Role role, boolean emailEnabled, boolean enabled) {
 
     public static UserResponse of(User user) {
-        return new UserResponse(user.getId(), user.getEmail(), user.getName(), user.getRole(), user.isEmailEnabled());
+        return new UserResponse(user.getId(), user.getEmail(), user.getName(), user.getRole(), user.isEmailEnabled(),
+                user.isEnabled());
     }
 }

@@ -25,6 +25,8 @@ public interface ExpressionRepository extends JpaRepository<Expression, Long> {
     int claim(@Param("id") Long id, @Param("userId") Long userId, @Param("incognito") boolean incognito,
               @Param("now") Instant now);
 
+    List<Expression> findByGroupIdOrderByCreatedAtDesc(Long groupId);
+
     List<Expression> findByGroupIdAndCreatorIdOrderByCreatedAtDesc(Long groupId, Long creatorId);
 
     List<Expression> findByGroupIdAndImplementerIdOrderByCreatedAtDesc(Long groupId, Long implementerId);

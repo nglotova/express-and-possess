@@ -8,6 +8,7 @@ export interface User {
   name: string;
   role: Role;
   emailEnabled: boolean;
+  enabled: boolean;
 }
 
 export type GroupStatus = "NEW" | "WORKING" | "CLOSED";

@@ -58,6 +58,9 @@ cd web && npm install && npm run dev
 
 Open http://localhost:5173 on a phone-sized window.
 
+To get the administration page, start the API with `APP_ADMIN_EMAILS=you@example.com` and
+register with that address. Administrators can then promote other accounts.
+
 The API listens on http://localhost:8080, the notifier's health endpoint on
 http://localhost:8081/actuator/health. Emails the application sends are caught by Mailpit
 at http://localhost:8025.

@@ -269,6 +269,44 @@ public class GroupService {
         return group.getId();
     }
 
+    // ---- for the administration page -----------------------------------------------
+
+    /** Every group whatever its status, for the administration page. */
+    public record AdminGroupRow(Long id, String name, String ownerName, GroupStatus status, int memberCount) {
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminGroupRow> adminList() {
+        return groups.findAll(org.springframework.data.domain.Sort.by("name")).stream()
+                .map(g -> new AdminGroupRow(g.getId(), g.getName(),
+                        users.findById(g.getOwnerId()).map(User::getName).orElse("?"),
+                        g.getStatus(), members.findByIdGroupId(g.getId()).size()))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Group adminGet(Long groupId) {
+        return groups.findById(groupId).orElseThrow(() -> ApiException.notFound("No such group"));
+    }
+
+    @Transactional(readOnly = true)
+    public List<MemberView> adminMembers(Long groupId) {
+        return members.findMembers(groupId);
+    }
+
+    /** Brings an archived group back as Closed; its admin can reopen nothing else. */
+    public void restore(Long groupId) {
+        Group group = adminGet(groupId);
+        if (group.getStatus() != GroupStatus.ARCHIVED) {
+            throw ApiException.conflict("Only an archived group can be restored");
+        }
+        group.setStatus(GroupStatus.CLOSED);
+    }
+
+    public void adminDelete(Long groupId) {
+        groups.delete(adminGet(groupId));
+    }
+
     // ---- helpers -------------------------------------------------------------------
 
     private void join(Long groupId, Long userId) {

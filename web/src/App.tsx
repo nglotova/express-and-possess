@@ -14,6 +14,7 @@ import { MemberExpressionsPage } from "./pages/MemberExpressionsPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { NotificationsPage } from "./pages/NotificationsPage";
 import { InvitePage, JoinPage } from "./pages/JoinPages";
+import { AdminPage } from "./pages/AdminPage";
 
 /** Pages behind login. Sends a visitor to the login page and back again afterwards. */
 function RequireAuth() {
@@ -52,6 +53,7 @@ export function App() {
         <Route path="/expressions/:id" element={<ExpressionPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/admin" element={<AdminPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

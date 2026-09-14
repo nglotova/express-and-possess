@@ -32,6 +32,8 @@ app:
   uploads-dir: ${UPLOADS_DIR:./uploads}
   notifications-topic: notifications
   outbox-poll-interval: 1s
+  # Comma-separated. Register with one of these addresses to get the administration page.
+  admin-emails: ${APP_ADMIN_EMAILS:}
 
 server:
   port: 8080

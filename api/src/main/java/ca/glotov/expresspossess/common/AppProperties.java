@@ -3,6 +3,7 @@ package ca.glotov.expresspossess.common;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * Settings under the {@code app} prefix in application.yml.
@@ -14,8 +15,10 @@ import java.time.Duration;
  * @param uploadsDir       directory for uploaded pictures
  * @param notificationsTopic Kafka topic the outbox is relayed to
  * @param outboxPollInterval how often the outbox publisher looks for unpublished events
+ * @param adminEmails      addresses that get the ADMIN role when they register
  */
 @ConfigurationProperties(prefix = "app")
 public record AppProperties(String baseUrl, String mailFrom, Duration passwordResetTtl, Duration invitationTtl,
-                            String uploadsDir, String notificationsTopic, Duration outboxPollInterval) {
+                            String uploadsDir, String notificationsTopic, Duration outboxPollInterval,
+                            List<String> adminEmails) {
 }
