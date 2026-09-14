@@ -1,0 +1,836 @@
+<title>Express & Possess Spec v3</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --paper: #f6f7f5;
+    --paper-2: #eceeea;
+    --ink: #1b2126;
+    --ink-2: #4f5a62;
+    --ink-3: #8a949b;
+    --line: #d5dad6;
+    --accent: #0f6b6b;
+    --accent-ink: #ffffff;
+    --accent-soft: #d9ebea;
+    --st-expressed: #0f6b6b;
+    --st-process: #a7671a;
+    --st-provided: #2e7d4f;
+    --st-possession: #6b7378;
+    --decision: #6a4c9c;
+    --decision-soft: #ece4f6;
+    --wire-fill: #ffffff;
+    --wire-line: #2b3238;
+    --wire-soft: #e7eae6;
+    --wire-mute: #8a949b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #151a1d;
+      --paper-2: #1d2428;
+      --ink: #e4e8e6;
+      --ink-2: #aab3b8;
+      --ink-3: #737d83;
+      --line: #2c353a;
+      --accent: #4fb5b0;
+      --accent-ink: #0d1517;
+      --accent-soft: #18302f;
+      --st-expressed: #4fb5b0;
+      --st-process: #d9a04a;
+      --st-provided: #5fbc85;
+      --st-possession: #8b959b;
+      --decision: #b49ad9;
+      --decision-soft: #2a2235;
+      --wire-fill: #1d2428;
+      --wire-line: #cfd6d3;
+      --wire-soft: #2a3237;
+      --wire-mute: #8a949b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #151a1d;
+    --paper-2: #1d2428;
+    --ink: #e4e8e6;
+    --ink-2: #aab3b8;
+    --ink-3: #737d83;
+    --line: #2c353a;
+    --accent: #4fb5b0;
+    --accent-ink: #0d1517;
+    --accent-soft: #18302f;
+    --st-expressed: #4fb5b0;
+    --st-process: #d9a04a;
+    --st-provided: #5fbc85;
+    --st-possession: #8b959b;
+    --decision: #b49ad9;
+    --decision-soft: #2a2235;
+    --wire-fill: #1d2428;
+    --wire-line: #cfd6d3;
+    --wire-soft: #2a3237;
+    --wire-mute: #8a949b;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    margin: 0;
+  }
+  main {
+    max-width: 72ch;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 5rem;
+  }
+  h1, h2, h3 {
+    font-family: Manrope, "IBM Plex Sans", Arial, sans-serif;
+    line-height: 1.15;
+    text-wrap: balance;
+    margin: 0;
+  }
+  h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.01em; }
+  h2 { font-size: 1.45rem; font-weight: 700; margin-top: 3rem; padding-top: 1.25rem; border-top: 2px solid var(--ink); }
+  h3 { font-size: 1.08rem; font-weight: 700; margin-top: 1.75rem; }
+  p { margin: 0.75rem 0; }
+  ul, ol { margin: 0.5rem 0 0.75rem; padding-left: 1.4rem; }
+  li { margin: 0.25rem 0; }
+  li > ul { margin-top: 0.15rem; }
+  a { color: var(--accent); }
+  code, .mono {
+    font-family: "IBM Plex Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+  }
+  pre {
+    font-family: "IBM Plex Mono", Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    padding: 0.85rem 1rem;
+    overflow-x: auto;
+    margin: 0.75rem 0;
+  }
+
+  .eyebrow {
+    font-family: Manrope, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .meta {
+    color: var(--ink-2);
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+  }
+  .meta dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.15rem 1rem; margin: 0.75rem 0 0; }
+  .meta dt { color: var(--ink-3); }
+  .meta dd { margin: 0; }
+
+  .note {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    padding: 0.75rem 1rem;
+    margin: 1.25rem 0;
+    font-size: 0.95rem;
+  }
+  .decision {
+    border-left: 3px solid var(--decision);
+    background: var(--decision-soft);
+    padding: 0.7rem 1rem;
+    margin: 1rem 0;
+    font-size: 0.95rem;
+  }
+  .decision .tag, .note .tag {
+    font-family: Manrope, sans-serif;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 0.2rem;
+  }
+  .decision .tag { color: var(--decision); }
+  .note .tag { color: var(--accent); }
+
+  .toc { columns: 2; column-gap: 2rem; font-size: 0.95rem; padding-left: 1.2rem; }
+  .toc li { break-inside: avoid; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.93rem;
+    margin: 0.75rem 0 1rem;
+  }
+  .tablewrap { overflow-x: auto; }
+  th, td {
+    text-align: left;
+    vertical-align: top;
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid var(--line);
+  }
+  th {
+    font-family: Manrope, sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    border-bottom: 2px solid var(--ink);
+  }
+  td.num { font-variant-numeric: tabular-nums; }
+
+  .status {
+    display: inline-block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.05rem 0.45rem;
+    border-radius: 3px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+  .st-expressed { color: var(--st-expressed); }
+  .st-process { color: var(--st-process); }
+  .st-provided { color: var(--st-provided); }
+  .st-possession { color: var(--st-possession); }
+
+  figure { margin: 1.5rem 0; }
+  figcaption {
+    font-size: 0.88rem;
+    color: var(--ink-2);
+    margin-top: 0.5rem;
+    max-width: 60ch;
+  }
+  .phones {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .phones figure { margin: 0; }
+  svg { max-width: 100%; height: auto; display: block; }
+  .wire { font-family: "IBM Plex Sans", Arial, sans-serif; color: var(--wire-line); }
+  .wire .frame { fill: var(--wire-fill); stroke: var(--wire-line); stroke-width: 2; }
+  .wire .box { fill: none; stroke: var(--wire-line); stroke-width: 1; }
+  .wire .soft { fill: var(--wire-soft); stroke: none; }
+  .wire .btn { fill: var(--accent); stroke: none; }
+  .wire .btn-text { fill: var(--accent-ink); font-weight: 600; }
+  .wire .ghost { fill: none; stroke: var(--accent); stroke-width: 1.2; }
+  .wire .ghost-text { fill: var(--accent); font-weight: 600; }
+  .wire text { fill: var(--wire-line); font-size: 11px; }
+  .wire .mute { fill: var(--wire-mute); font-size: 10px; }
+  .wire .h { font-weight: 600; font-size: 12px; }
+  .wire .title { font-family: Manrope, sans-serif; font-weight: 800; font-size: 13px; }
+  .wire .bang { fill: #c0392b; font-weight: 800; font-size: 13px; }
+  .wire .warn { fill: var(--st-process); font-weight: 800; font-size: 12px; }
+  .wire .thumb { fill: var(--wire-soft); stroke: var(--wire-line); stroke-width: 0.8; }
+  .wire .disabled { opacity: 0.45; }
+  .wire .chip { fill: none; stroke-width: 1; }
+  .wire .chip-text { font-family: "IBM Plex Mono", monospace; font-size: 9px; }
+
+  .diagram { color: var(--ink); }
+  .diagram text { fill: currentColor; font-family: "IBM Plex Sans", Arial, sans-serif; font-size: 12px; }
+  .diagram .lbl { font-size: 11px; fill: var(--ink-2); }
+  .diagram .state { fill: var(--paper-2); stroke: currentColor; stroke-width: 1.4; }
+  .diagram .state-text { font-family: "IBM Plex Mono", monospace; font-weight: 500; }
+  .diagram .edge { fill: none; stroke: currentColor; stroke-width: 1.3; }
+  .diagram .edge-back { fill: none; stroke: currentColor; stroke-width: 1.3; stroke-dasharray: 4 3; }
+  .diagram .box { fill: var(--paper-2); stroke: currentColor; stroke-width: 1.2; }
+  .diagram .box-accent { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.4; }
+
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem 2rem; }
+  @media (max-width: 600px) { .toc { columns: 1; } }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+
+<main>
+  <span class="eyebrow">Specification, version 3, draft</span>
+  <h1>Express &amp; Possess</h1>
+  <div class="meta">
+    A website where members of a group write down wishes and other members volunteer to fulfil them.
+    <dl>
+      <dt>Author</dt><dd>Natasha Glotova</dd>
+      <dt>Date</dt><dd>2026-09-11</dd>
+      <dt>Based on</dt><dd>Spec v2 plus the v1 and v2 reviews. Everything from v2 is kept unless a decision box below says otherwise.</dd>
+    </dl>
+  </div>
+
+  <div class="decision">
+    <span class="tag">How to read the purple boxes</span>
+    Each one is a decision that was open in v2 and is now proposed. The text around it is written as if the decision stands. Overturn any of them and the surrounding text changes, nothing else does.
+  </div>
+
+  <ol class="toc">
+    <li><a href="#desc">Description</a></li>
+    <li><a href="#vocab">Roles and statuses</a></li>
+    <li><a href="#life">Expression lifecycle</a></li>
+    <li><a href="#p-login">Login and registration</a></li>
+    <li><a href="#p-groups">My Groups</a></li>
+    <li><a href="#p-profile">Profile</a></li>
+    <li><a href="#p-group">Create and edit a group</a></li>
+    <li><a href="#p-activity">Group activity</a></li>
+    <li><a href="#p-expr">Expression</a></li>
+    <li><a href="#p-users">Group users and a user's expressions</a></li>
+    <li><a href="#p-admin">Administration</a></li>
+    <li><a href="#notif">Notifications</a></li>
+    <li><a href="#nav">Navigation</a></li>
+    <li><a href="#tech">Technology and hosting</a></li>
+    <li><a href="#log">Decision log</a></li>
+    <li><a href="#later">Left for later</a></li>
+  </ol>
+
+  <h2 id="desc">1. Description</h2>
+  <p>Express &amp; Possess is a website where users express their wishes, and the other users of the group take the responsibility to make these wishes come true, free of charge.</p>
+  <p>The idea came from home. My teenagers keep asking for things to buy and send the links to me and my husband over WhatsApp. In the flow of other messages the links get lost, and the kids send them again. I want one place where everyone in a group such as a family can see the wish lists of the others, plus the list of what they themselves have promised to provide.</p>
+  <p>The same system can serve a company, where employees request hardware or access codes and a colleague takes care of the request.</p>
+  <p>The website must work well on a phone. The design is simple and generic, and every page is laid out for a narrow screen first.</p>
+
+  <h2 id="vocab">2. Roles and statuses</h2>
+  <h3>People</h3>
+  <ul>
+    <li><strong>Member</strong>: any registered user who belongs to at least one group.</li>
+    <li><strong>Group admin</strong>: the member who created the group. The only person who can edit the group, invite and remove members, close, archive, or delete it.</li>
+    <li><strong>Creator</strong> of an expression: the member who wrote the wish.</li>
+    <li><strong>Implementer</strong>: the member who took care of the wish. An expression has at most one implementer at a time.</li>
+    <li><strong>System administrator</strong>: a user whose account carries the <code>ADMIN</code> role. Sees the administration page. Ordinary members never see it.</li>
+  </ul>
+
+  <h3>Expression statuses</h3>
+  <p>One name per state, used everywhere: in the lists, on the expression page, in notifications and in the database.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Status</th><th>Meaning</th><th>Who can change it</th></tr>
+    <tr><td><span class="status st-expressed">Expressed</span></td><td>Written down, nobody has taken care of it yet.</td><td>Creator can edit or delete. Any other member can take care.</td></tr>
+    <tr><td><span class="status st-process">In Process</span></td><td>An implementer has claimed it and is working on it.</td><td>Implementer can update their section, mark it provided, or release it. Creator can still delete it.</td></tr>
+    <tr><td><span class="status st-provided">Provided</span></td><td>The implementer says it is bought or made.</td><td>Creator ticks Got it. Nobody can delete.</td></tr>
+    <tr><td><span class="status st-possession">In Possession</span></td><td>The creator has received it. Closed.</td><td>Nobody. The page is read-only for everyone.</td></tr>
+  </table></div>
+
+  <h3>Group statuses</h3>
+  <ul>
+    <li><strong>New</strong>: no expression has ever been created in the group.</li>
+    <li><strong>Working</strong>: at least one expression exists.</li>
+    <li><strong>Closed</strong>: the admin closed it. Members still see it, nobody can add or change expressions.</li>
+    <li><strong>Archived</strong>: kept in the database, shown nowhere except the administration page.</li>
+  </ul>
+  <p>New and Working are not stored. They are computed from whether the group has any expressions, so they can never get out of step with the data. Closed and Archived are stored.</p>
+
+  <h2 id="life">3. Expression lifecycle</h2>
+  <figure>
+    <svg class="diagram" viewBox="0 0 720 250" role="img" aria-label="State diagram: Expressed goes to In Process by Take Care, back to Expressed by Release, In Process goes to Provided by the implementer's Submit with Provided ticked, Provided goes to In Possession by the creator's Submit with Got it ticked. Delete is allowed from Expressed and In Process only.">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"></path>
+        </marker>
+      </defs>
+      <!-- states -->
+      <rect class="state" x="20" y="90" width="130" height="44" rx="6"></rect>
+      <text class="state-text" x="85" y="117" text-anchor="middle">Expressed</text>
+      <rect class="state" x="210" y="90" width="130" height="44" rx="6"></rect>
+      <text class="state-text" x="275" y="117" text-anchor="middle">In Process</text>
+      <rect class="state" x="400" y="90" width="130" height="44" rx="6"></rect>
+      <text class="state-text" x="465" y="117" text-anchor="middle">Provided</text>
+      <rect class="state" x="580" y="90" width="130" height="44" rx="6"></rect>
+      <text class="state-text" x="645" y="117" text-anchor="middle">In Possession</text>
+      <!-- forward edges -->
+      <line class="edge" x1="150" y1="104" x2="208" y2="104" marker-end="url(#arr)"></line>
+      <text class="lbl" x="179" y="80" text-anchor="middle">Take Care</text>
+      <line class="edge" x1="340" y1="112" x2="398" y2="112" marker-end="url(#arr)"></line>
+      <text class="lbl" x="369" y="66" text-anchor="middle">Submit,</text>
+      <text class="lbl" x="369" y="80" text-anchor="middle">Provided ticked</text>
+      <line class="edge" x1="530" y1="112" x2="578" y2="112" marker-end="url(#arr)"></line>
+      <text class="lbl" x="554" y="66" text-anchor="middle">Submit,</text>
+      <text class="lbl" x="554" y="80" text-anchor="middle">Got it ticked</text>
+      <!-- release back -->
+      <path class="edge-back" d="M210,124 L152,124" marker-end="url(#arr)"></path>
+      <text class="lbl" x="179" y="148" text-anchor="middle">Release</text>
+      <!-- create -->
+      <line class="edge" x1="85" y1="40" x2="85" y2="88" marker-end="url(#arr)"></line>
+      <text class="lbl" x="95" y="58">Create</text>
+      <!-- delete -->
+      <path class="edge" d="M85,134 L85,200 L180,200" marker-end="url(#arr)"></path>
+      <path class="edge" d="M275,134 L275,200" ></path>
+      <text x="200" y="204">deleted</text>
+      <text class="lbl" x="100" y="180">Delete (creator)</text>
+      <!-- roles -->
+      <text class="lbl" x="179" y="164" text-anchor="middle">implementer</text>
+      <text class="lbl" x="369" y="140" text-anchor="middle">implementer</text>
+      <text class="lbl" x="554" y="140" text-anchor="middle">creator</text>
+      <text class="lbl" x="645" y="160" text-anchor="middle">page read-only</text>
+    </svg>
+    <figcaption>Every status change an expression can go through, and who triggers it. A request for any transition not drawn here is refused by the server.</figcaption>
+  </figure>
+
+  <div class="tablewrap"><table>
+    <tr><th>From</th><th>Action</th><th>Who</th><th>To</th></tr>
+    <tr><td>(none)</td><td>Create</td><td>any member of the group</td><td><span class="status st-expressed">Expressed</span></td></tr>
+    <tr><td><span class="status st-expressed">Expressed</span></td><td>Take Care</td><td>any member except the creator</td><td><span class="status st-process">In Process</span></td></tr>
+    <tr><td><span class="status st-expressed">Expressed</span></td><td>Delete</td><td>creator</td><td>deleted</td></tr>
+    <tr><td><span class="status st-process">In Process</span></td><td>Release</td><td>implementer</td><td><span class="status st-expressed">Expressed</span></td></tr>
+    <tr><td><span class="status st-process">In Process</span></td><td>Submit with Provided ticked</td><td>implementer</td><td><span class="status st-provided">Provided</span></td></tr>
+    <tr><td><span class="status st-process">In Process</span></td><td>Delete</td><td>creator; the implementer is notified</td><td>deleted</td></tr>
+    <tr><td><span class="status st-provided">Provided</span></td><td>Submit with Got it ticked</td><td>creator</td><td><span class="status st-possession">In Possession</span></td></tr>
+    <tr><td><span class="status st-provided">Provided</span></td><td>Delete</td><td>nobody</td><td></td></tr>
+    <tr><td><span class="status st-possession">In Possession</span></td><td>anything</td><td>nobody</td><td></td></tr>
+  </table></div>
+
+  <div class="decision">
+    <span class="tag">Decision: Take Care is the claim</span>
+    Clicking Take Care records the implementer and sets In Process in the same instant. The second section that opens afterwards only edits details on an expression the person already owns. If two members click Take Care at the same moment, exactly one succeeds; the other sees "Already taken by someone else" and the page reloads. In v2 the claim could be read as happening on the later Submit, which would let two people fill the section at once.
+  </div>
+
+  <h2 id="p-login">4. Login and registration</h2>
+  <p>A traditional login page: email, password, Login button. After login the user lands on <a href="#p-groups">My Groups</a>.</p>
+  <p>Below the form, two links:</p>
+  <ul>
+    <li><strong>New user?</strong> opens the registration form: email (used as the username), password, repeat password, name. The name is first and last name or a nickname. The Register button creates the account and goes to My Groups.</li>
+    <li><strong>Forgot your password?</strong> asks for the email and sends a reset link.</li>
+  </ul>
+  <div class="decision">
+    <span class="tag">Decision: names need not be unique</span>
+    v2 validated the name for uniqueness across the whole system. That rule only existed to make a global user list usable, and the global list is gone (see the group page). The email is the unique identifier; two members named Alex can coexist.
+  </div>
+  <p>Someone who opens an invitation link (see the group page) without an account is taken to this registration form with the email already filled in, and joins the group as soon as registration completes.</p>
+
+  <h2 id="p-groups">5. My Groups</h2>
+  <p>The landing page after login. It lists the groups the current user belongs to, including the ones they created. A user in no group sees an empty list with the Create group button.</p>
+  <p>Each row shows:</p>
+  <ul>
+    <li>Group name</li>
+    <li>Owner (the group admin)</li>
+    <li>Status: New, Working, or Closed</li>
+    <li>A flashing red <span class="bang" style="color:#c0392b;font-weight:800">!</span> when the group has expressions that nobody has taken care of yet</li>
+    <li>A warning sign when the current user is the implementer of an expression that is In Process in this group</li>
+  </ul>
+  <p>Tapping a row opens <a href="#p-activity">Group activity</a>. The Create group button at the bottom opens <a href="#p-group">Create group</a>.</p>
+  <p>The header of every page carries the app name, the notification bell with an unread count, and the user's name, which opens the <a href="#p-profile">Profile</a>.</p>
+
+  <div class="phones">
+    <figure>
+      <svg class="wire" viewBox="0 0 320 520" role="img" aria-label="Wireframe of the My Groups page on a phone: header with bell and user name, three group rows with status and icons, and a Create group button.">
+        <rect class="frame" x="1" y="1" width="318" height="518" rx="18"></rect>
+        <!-- header -->
+        <rect class="soft" x="1" y="1" width="318" height="48" rx="18"></rect>
+        <rect class="soft" x="1" y="30" width="318" height="19"></rect>
+        <text class="title" x="16" y="30">Express &amp; Possess</text>
+        <circle class="box" cx="252" cy="25" r="9"></circle>
+        <circle cx="259" cy="18" r="5" fill="#c0392b"></circle>
+        <text x="257" y="21" font-size="7" fill="#fff" text-anchor="middle" font-weight="700">2</text>
+        <text x="304" y="29" text-anchor="end">Natasha</text>
+        <!-- title -->
+        <text class="h" x="16" y="78">My Groups</text>
+        <!-- row 1 -->
+        <rect class="box" x="12" y="92" width="296" height="64" rx="6"></rect>
+        <text class="h" x="24" y="113">Family</text>
+        <text class="mute" x="24" y="129">Owner: Natasha</text>
+        <rect class="chip" x="24" y="137" width="48" height="13" rx="3" stroke="var(--st-process)"></rect>
+        <text class="chip-text" x="48" y="147" text-anchor="middle" fill="var(--st-process)">Working</text>
+        <text class="bang" x="272" y="118">!</text>
+        <text class="warn" x="288" y="118">&#9650;</text>
+        <!-- row 2 -->
+        <rect class="box" x="12" y="164" width="296" height="64" rx="6"></rect>
+        <text class="h" x="24" y="185">Office, floor 3</text>
+        <text class="mute" x="24" y="201">Owner: Dmitri</text>
+        <rect class="chip" x="24" y="209" width="48" height="13" rx="3" stroke="var(--st-process)"></rect>
+        <text class="chip-text" x="48" y="219" text-anchor="middle" fill="var(--st-process)">Working</text>
+        <text class="bang" x="272" y="190">!</text>
+        <!-- row 3 -->
+        <rect class="box" x="12" y="236" width="296" height="64" rx="6"></rect>
+        <text class="h" x="24" y="257">Grandparents</text>
+        <text class="mute" x="24" y="273">Owner: Natasha</text>
+        <rect class="chip" x="24" y="281" width="34" height="13" rx="3" stroke="var(--wire-mute)"></rect>
+        <text class="chip-text" x="41" y="291" text-anchor="middle" fill="var(--wire-mute)">New</text>
+        <!-- button -->
+        <rect class="btn" x="12" y="452" width="296" height="40" rx="6"></rect>
+        <text class="btn-text" x="160" y="477" text-anchor="middle">Create group</text>
+      </svg>
+      <figcaption>My Groups. The red ! means untaken expressions exist; the triangle means you are the implementer of something In Process here. The bell in the header carries the unread notification count.</figcaption>
+    </figure>
+
+    <figure>
+      <svg class="wire" viewBox="0 0 320 520" role="img" aria-label="Wireframe of the Create or edit group page: group name field, members list with roles and Remove controls, invite by email field with Send, share link toggle, and Save, Close buttons.">
+        <rect class="frame" x="1" y="1" width="318" height="518" rx="18"></rect>
+        <rect class="soft" x="1" y="1" width="318" height="48" rx="18"></rect>
+        <rect class="soft" x="1" y="30" width="318" height="19"></rect>
+        <text x="16" y="30">&#8592; My Groups</text>
+        <text x="304" y="29" text-anchor="end">Natasha</text>
+        <text class="h" x="16" y="78">Edit group</text>
+        <text class="mute" x="16" y="98">Name</text>
+        <rect class="box" x="12" y="104" width="296" height="30" rx="4"></rect>
+        <text x="22" y="124">Family</text>
+        <text class="mute" x="16" y="154">Status</text>
+        <rect class="chip" x="12" y="160" width="48" height="13" rx="3" stroke="var(--st-process)"></rect>
+        <text class="chip-text" x="36" y="170" text-anchor="middle" fill="var(--st-process)">Working</text>
+        <text class="h" x="16" y="198">Members</text>
+        <line x1="12" y1="206" x2="308" y2="206" stroke="var(--wire-line)" stroke-width="0.6"></line>
+        <text x="16" y="224">Natasha</text><text class="mute" x="90" y="224">admin</text>
+        <text x="16" y="246">Andrei</text><text class="mute" x="90" y="246">member</text><text class="ghost-text" x="304" y="246" text-anchor="end">Remove</text>
+        <text x="16" y="268">Lev</text><text class="mute" x="90" y="268">member</text><text class="ghost-text" x="304" y="268" text-anchor="end">Remove</text>
+        <text x="16" y="290">mila@example.com</text><text class="mute" x="140" y="290">invited, not joined</text><text class="ghost-text" x="304" y="290" text-anchor="end">Cancel</text>
+        <line x1="12" y1="300" x2="308" y2="300" stroke="var(--wire-line)" stroke-width="0.6"></line>
+        <text class="mute" x="16" y="322">Invite by email</text>
+        <rect class="box" x="12" y="328" width="228" height="30" rx="4"></rect>
+        <text class="mute" x="22" y="348">name@example.com</text>
+        <rect class="ghost" x="248" y="328" width="60" height="30" rx="4"></rect>
+        <text class="ghost-text" x="278" y="348" text-anchor="middle">Send</text>
+        <rect class="box" x="12" y="370" width="12" height="12" rx="2"></rect>
+        <text x="30" y="380">Anyone with the link can join</text>
+        <text class="mono mute" x="30" y="394">expresspossess.app/join/7Kq2…</text>
+        <rect class="btn" x="12" y="420" width="140" height="36" rx="6"></rect>
+        <text class="btn-text" x="82" y="443" text-anchor="middle">Save</text>
+        <rect class="ghost" x="168" y="420" width="140" height="36" rx="6"></rect>
+        <text class="ghost-text" x="238" y="443" text-anchor="middle">Close group</text>
+        <text class="mute" x="16" y="486">Delete and Archive appear here once the group is Closed.</text>
+      </svg>
+      <figcaption>Create or edit a group. Members arrive by email invitation or by a share link the admin can switch off. There is no list of all users in the system.</figcaption>
+    </figure>
+  </div>
+
+  <h2 id="p-profile">6. Profile</h2>
+  <p>Opened from the user's name in the header. Fields:</p>
+  <ul>
+    <li>Name, editable</li>
+    <li>Email, shown but disabled</li>
+    <li>Change password link, in the traditional way</li>
+    <li>Notification channels: in-app is always on; email on or off; Telegram, when connected (see <a href="#notif">Notifications</a>)</li>
+    <li>Save button, returns to My Groups</li>
+  </ul>
+
+  <h2 id="p-group">7. Create and edit a group</h2>
+  <p>Any member can create a group and becomes its admin. Only the admin sees the editing controls; other members see the same page read-only, with a Leave group button.</p>
+  <ul>
+    <li><strong>Group name</strong>, text field.</li>
+    <li><strong>Status</strong>, shown: New by default, then Working, Closed, or Archived.</li>
+    <li><strong>Members</strong>: the current members with their role. Each row except the admin's has a Remove control. Pending invitations are listed with "invited, not joined" and a Cancel control.</li>
+    <li><strong>Invite by email</strong>: the admin types an address and taps Send. If the address already has an account, that user is added at once and gets an in-app notification. If not, an email with a one-time link goes out; the person joins after registering.</li>
+    <li><strong>Share link</strong>: a checkbox "Anyone with the link can join". While ticked, a link is shown that the admin can copy into a family chat. Unticking it invalidates the link. Ticking again makes a new one.</li>
+    <li><strong>Save</strong> stores the group and makes it visible to its members.</li>
+    <li><strong>Close</strong> sets the status to Closed. Expressions become read-only.</li>
+    <li><strong>Delete group</strong> and <strong>Archive group</strong> appear only when the group is Closed. Delete removes it from the database with everything in it. Archive keeps it but hides it from everyone except the system administrator.</li>
+  </ul>
+
+  <div class="decision">
+    <span class="tag">Decision: invitations replace the user picker</span>
+    v2 showed a paginated list of every registered user with checkboxes and asked for other ideas. A global list exposes every user's name to every other user (a real problem once the public demo exists) and stops being usable past a few dozen accounts. Invitation by email is what every comparable product does, and the share link covers the family case where typing four addresses feels like work.
+  </div>
+
+  <h3>When membership changes</h3>
+  <ul>
+    <li>A removed member, or one who leaves, stops seeing the group.</li>
+    <li>Their expressions stay in the group, still labelled with their name, so the others can decide what to do with them. The former member can no longer edit them; the admin can delete them.</li>
+    <li>Any expression they were implementing is released, exactly as if they had pressed Release, and its creator is notified.</li>
+    <li>The admin cannot leave. To hand over a group, the admin picks another member as the new admin from the members list (a "Make admin" control), then may leave.</li>
+  </ul>
+
+  <h2 id="p-activity">8. Group activity</h2>
+  <p>The top shows the group name and a link to <a href="#p-users">Group users</a>. Below are three sections. Every row in every section is a link to the <a href="#p-expr">Expression</a> page.</p>
+  <ul>
+    <li><strong>My expressions</strong>: the current user's wish list in this group. Columns: picture, description, by date, providing by date, providing by user, status.</li>
+    <li><strong>My implementations</strong>: other users' expressions where the current user is the implementer. Columns: picture, creator, description, by date, providing by date, status.</li>
+    <li><strong>Not taken yet</strong>: other users' expressions with status Expressed. Columns: picture, creator, description, by date.</li>
+  </ul>
+  <p>The Create expression button sits under My expressions.</p>
+  <div class="decision">
+    <span class="tag">Decision: no database identifiers on screen</span>
+    v2 showed the numeric ID as the first column of every list. On a phone the column costs a fifth of the width and tells the reader nothing. The ID stays in the URL of the expression page and in the API; the picture thumbnail takes its place as the row's anchor.
+  </div>
+
+  <div class="phones">
+    <figure>
+      <svg class="wire" viewBox="0 0 320 560" role="img" aria-label="Wireframe of the Group activity page: group name, link to group users, three sections of expression rows with thumbnail, description, dates and status, and a Create expression button.">
+        <rect class="frame" x="1" y="1" width="318" height="558" rx="18"></rect>
+        <rect class="soft" x="1" y="1" width="318" height="48" rx="18"></rect>
+        <rect class="soft" x="1" y="30" width="318" height="19"></rect>
+        <text x="16" y="30">&#8592; My Groups</text>
+        <text x="304" y="29" text-anchor="end">Natasha</text>
+        <text class="title" x="16" y="76">Family</text>
+        <text class="ghost-text" x="304" y="76" text-anchor="end">Group users &#8250;</text>
+        <!-- section 1 -->
+        <text class="h" x="16" y="104">My expressions</text>
+        <rect class="box" x="12" y="112" width="296" height="52" rx="6"></rect>
+        <rect class="thumb" x="20" y="120" width="36" height="36" rx="3"></rect>
+        <text x="64" y="132">Running shoes, size 41</text>
+        <text class="mute" x="64" y="146">by 20 Oct · providing by 15 Oct · Andrei</text>
+        <rect class="chip" x="240" y="118" width="60" height="13" rx="3" stroke="var(--st-process)"></rect>
+        <text class="chip-text" x="270" y="128" text-anchor="middle" fill="var(--st-process)">In Process</text>
+        <rect class="box" x="12" y="170" width="296" height="52" rx="6"></rect>
+        <rect class="thumb" x="20" y="178" width="36" height="36" rx="3"></rect>
+        <text x="64" y="190">Kindle case</text>
+        <text class="mute" x="64" y="204">by 1 Dec · Incognito</text>
+        <rect class="chip" x="240" y="176" width="60" height="13" rx="3" stroke="var(--st-provided)"></rect>
+        <text class="chip-text" x="270" y="186" text-anchor="middle" fill="var(--st-provided)">Provided</text>
+        <rect class="ghost" x="12" y="230" width="296" height="32" rx="6"></rect>
+        <text class="ghost-text" x="160" y="251" text-anchor="middle">+ Create expression</text>
+        <!-- section 2 -->
+        <text class="h" x="16" y="292">My implementations</text>
+        <rect class="box" x="12" y="300" width="296" height="52" rx="6"></rect>
+        <rect class="thumb" x="20" y="308" width="36" height="36" rx="3"></rect>
+        <text x="64" y="320">Lev · Graphics tablet</text>
+        <text class="mute" x="64" y="334">by 30 Sep · providing by 28 Sep</text>
+        <rect class="chip" x="240" y="306" width="60" height="13" rx="3" stroke="var(--st-process)"></rect>
+        <text class="chip-text" x="270" y="316" text-anchor="middle" fill="var(--st-process)">In Process</text>
+        <!-- section 3 -->
+        <text class="h" x="16" y="382">Not taken yet</text>
+        <rect class="box" x="12" y="390" width="296" height="52" rx="6"></rect>
+        <rect class="thumb" x="20" y="398" width="36" height="36" rx="3"></rect>
+        <text x="64" y="410">Mila · Headphones (link)</text>
+        <text class="mute" x="64" y="424">by 12 Oct</text>
+        <text class="bang" x="292" y="416">!</text>
+        <rect class="box" x="12" y="448" width="296" height="52" rx="6"></rect>
+        <rect class="thumb" x="20" y="456" width="36" height="36" rx="3"></rect>
+        <text x="64" y="468">Andrei · Bicycle pump</text>
+        <text class="mute" x="64" y="482">no date</text>
+        <text class="bang" x="292" y="474">!</text>
+      </svg>
+      <figcaption>Group activity. The same three sections as v2, without the ID column. Status chips are the only colour on the page.</figcaption>
+    </figure>
+
+    <figure>
+      <svg class="wire" viewBox="0 0 320 560" role="img" aria-label="Wireframe of the Expression page as seen by the creator while it is In Process: the wish section with description locked, the implementer section showing Incognito, the comments section, and Delete button.">
+        <rect class="frame" x="1" y="1" width="318" height="558" rx="18"></rect>
+        <rect class="soft" x="1" y="1" width="318" height="48" rx="18"></rect>
+        <rect class="soft" x="1" y="30" width="318" height="19"></rect>
+        <text x="16" y="30">&#8592; Family</text>
+        <text x="304" y="29" text-anchor="end">Natasha</text>
+        <text class="title" x="16" y="76">Kindle case</text>
+        <rect class="chip" x="240" y="66" width="60" height="13" rx="3" stroke="var(--st-process)"></rect>
+        <text class="chip-text" x="270" y="76" text-anchor="middle" fill="var(--st-process)">In Process</text>
+        <!-- section 1 -->
+        <text class="h" x="16" y="102">Wish</text>
+        <text class="mute" x="304" y="102" text-anchor="end">by Natasha</text>
+        <rect class="thumb" x="12" y="110" width="60" height="60" rx="3"></rect>
+        <rect class="box disabled" x="80" y="110" width="228" height="60" rx="4"></rect>
+        <text class="disabled" x="88" y="126">Blue fabric one, like this:</text>
+        <text class="disabled" x="88" y="140" fill="var(--accent)">amazon.ca/dp/B0…</text>
+        <text class="mute" x="88" y="162">locked while someone takes care</text>
+        <text class="mute" x="16" y="190">By date</text>
+        <rect class="box" x="12" y="196" width="130" height="26" rx="4"></rect>
+        <text x="22" y="213">1 Dec 2026</text>
+        <rect class="box" x="160" y="200" width="12" height="12" rx="2"></rect>
+        <text x="178" y="210">Got it</text>
+        <rect class="btn" x="12" y="232" width="100" height="30" rx="6"></rect>
+        <text class="btn-text" x="62" y="251" text-anchor="middle">Submit</text>
+        <text class="ghost-text" x="304" y="251" text-anchor="end">Delete</text>
+        <!-- section 2 -->
+        <line x1="12" y1="276" x2="308" y2="276" stroke="var(--wire-line)" stroke-width="0.6"></line>
+        <text class="h" x="16" y="296">Taken care of by</text>
+        <text x="304" y="296" text-anchor="end">Incognito</text>
+        <g class="disabled">
+          <rect class="box" x="12" y="306" width="12" height="12" rx="2"></rect>
+          <text x="30" y="316">Incognito</text>
+          <text class="mute" x="16" y="338">Providing by date</text>
+          <rect class="box" x="12" y="344" width="130" height="26" rx="4"></rect>
+          <text x="22" y="361">not set</text>
+          <rect class="box" x="160" y="348" width="12" height="12" rx="2"></rect>
+          <text x="178" y="358">Provided</text>
+        </g>
+        <text class="mute" x="16" y="390">Only the implementer can edit this section.</text>
+        <!-- comments -->
+        <line x1="12" y1="404" x2="308" y2="404" stroke="var(--wire-line)" stroke-width="0.6"></line>
+        <text class="h" x="16" y="424">Comments</text>
+        <text class="mute" x="16" y="444">Anonymous helper · yesterday</text>
+        <text x="16" y="458">Does it have to be blue?</text>
+        <text class="mute" x="16" y="478">Natasha · yesterday</text>
+        <text x="16" y="492">Any dark colour is fine.</text>
+        <rect class="box" x="12" y="506" width="228" height="30" rx="4"></rect>
+        <text class="mute" x="22" y="526">Write a comment</text>
+        <rect class="ghost" x="248" y="506" width="60" height="30" rx="4"></rect>
+        <text class="ghost-text" x="278" y="526" text-anchor="middle">Send</text>
+      </svg>
+      <figcaption>Expression page as the creator sees it while it is In Process with an incognito implementer. The description is locked, the implementer's section is read-only, and the implementer's comments show as Anonymous helper.</figcaption>
+    </figure>
+  </div>
+
+  <h2 id="p-expr">9. Expression</h2>
+  <p>One page with three sections. Who can edit which section depends on their role; everyone in the group can see all three. When the status is In Possession the whole page is read-only.</p>
+
+  <h3>Section 1: the wish (creator edits, others see)</h3>
+  <ul>
+    <li><strong>Creator's name</strong>, shown.</li>
+    <li><strong>Description</strong>, mandatory. Links inside open in a new browser tab. Locked from the moment someone takes care until the expression is released.</li>
+    <li><strong>Picture</strong>, optional. When the description contains a product link and no picture was chosen, the system fetches the page's preview image and title and uses them as the picture. The creator can replace it.</li>
+    <li><strong>By date</strong>, optional: when the creator would like to have it.</li>
+    <li><strong>Got it</strong> checkbox, enabled only when the status is Provided.</li>
+    <li><strong>Submit</strong>: saves the section. If Got it is ticked the status becomes In Possession.</li>
+    <li><strong>Delete</strong>: removes the expression with its comments. Hidden when the status is Provided or In Possession. If the expression is In Process, the implementer is notified that it was withdrawn.</li>
+  </ul>
+
+  <h3>Section 2: taking care (implementer edits, others see)</h3>
+  <p>While the status is Expressed and the viewer is not the creator, this section is a single <strong>Take Care</strong> button. Pressing it claims the expression: the implementer is recorded, the status becomes In Process, the creator is notified, and the fields below appear.</p>
+  <ul>
+    <li><strong>Implementer's name</strong>, shown, or "Incognito".</li>
+    <li><strong>Incognito</strong> checkbox, optional. While ticked, the implementer's name is replaced by "Incognito" in every list, on this page, in notifications, and their comments are signed "Anonymous helper". The system administrator can still see who it is.</li>
+    <li><strong>Providing by date</strong>, optional.</li>
+    <li><strong>Provided</strong> checkbox: the wish is bought or made.</li>
+    <li><strong>Submit</strong>: saves the section. If Provided is ticked the status becomes Provided and the creator is notified.</li>
+    <li><strong>Release</strong>: the implementer backs out. The section is cleared, the status returns to Expressed, the description unlocks, and the creator is notified. Available only while In Process.</li>
+  </ul>
+  <div class="decision">
+    <span class="tag">Decision: Incognito hides the name in comments too</span>
+    v2 showed the real name in comments while hiding it elsewhere, which reveals the person the first time they ask a question. Either the option hides the name everywhere or it is not worth having. Comments by an incognito implementer are signed "Anonymous helper".
+  </div>
+
+  <h3>Section 3: comments (anyone in the group)</h3>
+  <ul>
+    <li>Earlier comments, oldest first, each with the author's name and time.</li>
+    <li>A text area with a Send button. A sent comment appears at the end and the text area clears.</li>
+    <li>Comments close when the status becomes In Possession.</li>
+  </ul>
+  <div class="decision">
+    <span class="tag">Decision: comments stay open until In Possession</span>
+    v2 closed them at Provided, but Got it happens after Provided, so the creator could not say thanks. Closing at In Possession keeps the thread open exactly as long as the expression is.
+  </div>
+
+  <h2 id="p-users">10. Group users and a user's expressions</h2>
+  <p><strong>Group users</strong> lists every member of the group: name, email, and a mark if the member has created any expression. Tapping a row opens that user's expressions.</p>
+  <p><strong>A user's expressions</strong> shows the selected member's name and their wish list in this group, with the same columns as My expressions. Each row opens the Expression page. The back link returns to Group users.</p>
+
+  <h2 id="p-admin">11. Administration</h2>
+  <p>A page visible only to accounts with the <code>ADMIN</code> role. It is reached from the header menu, not through a separate login. The role is assigned in the database, or by an existing administrator on this page.</p>
+  <ul>
+    <li><strong>Users</strong>: list, search, disable an account, grant or revoke the administrator role. Adding users is done through invitations like everyone else.</li>
+    <li><strong>Groups</strong>: list including archived ones, open any group read-only, restore an archived group, delete a group.</li>
+    <li><strong>Stuck expressions</strong>: force the status of any expression to any value, with a mandatory reason that is written to the expression's comments as a system note.</li>
+  </ul>
+  <div class="decision">
+    <span class="tag">Decision: an ordinary account with a role, not a special login</span>
+    v2 said "reachable only by Administrator with a special login". A role on a normal account is simpler to build, is what Spring Security does natively, and is the role-based access control worth showing in a portfolio.
+  </div>
+
+  <h2 id="notif">12. Notifications</h2>
+  <p>A notification is produced whenever something happens to an expression that concerns a member other than the one who did it:</p>
+  <div class="tablewrap"><table>
+    <tr><th>Event</th><th>Who is told</th></tr>
+    <tr><td>New expression created</td><td>every other member of the group</td></tr>
+    <tr><td>Take Care, Release, Provided</td><td>the creator</td></tr>
+    <tr><td>Got it</td><td>the implementer</td></tr>
+    <tr><td>Expression deleted while In Process</td><td>the implementer</td></tr>
+    <tr><td>New comment</td><td>the creator and the implementer, whichever did not write it</td></tr>
+    <tr><td>Invited to a group, removed from a group, group closed</td><td>the member concerned, or all members</td></tr>
+  </table></div>
+  <p>Notifications are delivered through channels the member can switch on in their profile:</p>
+  <ol>
+    <li><strong>In-app</strong>, always on. The bell in the header shows the unread count; opening it lists the notifications, newest first, each linking to the expression. The flashing ! and the warning sign on My Groups are computed from the same data.</li>
+    <li><strong>Email</strong>, optional. One message per event, with a link.</li>
+    <li><strong>Telegram</strong>, optional, later. The member connects a Telegram bot from the profile page and gets each event as a message. This is the messenger channel: teenagers read Telegram, and its bot API is free.</li>
+  </ol>
+
+  <figure>
+    <svg class="diagram" viewBox="0 0 720 210" role="img" aria-label="Flow of a notification: the web app writes the change and an event row in one transaction, an outbox publisher sends the event to a Kafka topic, a notifier service reads it and delivers to in-app, email, and Telegram channels.">
+      <defs>
+        <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"></path>
+        </marker>
+      </defs>
+      <rect class="box" x="20" y="60" width="120" height="70" rx="6"></rect>
+      <text x="80" y="88" text-anchor="middle">Web app</text>
+      <text class="lbl" x="80" y="104" text-anchor="middle">Take Care, comment…</text>
+      <rect class="box" x="190" y="40" width="130" height="110" rx="6"></rect>
+      <text x="255" y="66" text-anchor="middle">PostgreSQL</text>
+      <rect class="box-accent" x="205" y="80" width="100" height="24" rx="4"></rect>
+      <text class="lbl" x="255" y="96" text-anchor="middle">expressions</text>
+      <rect class="box-accent" x="205" y="112" width="100" height="24" rx="4"></rect>
+      <text class="lbl" x="255" y="128" text-anchor="middle">outbox_events</text>
+      <line class="edge" x1="140" y1="95" x2="188" y2="95" marker-end="url(#arr2)"></line>
+      <text class="lbl" x="164" y="84" text-anchor="middle">one</text>
+      <text class="lbl" x="164" y="112" text-anchor="middle">transaction</text>
+      <rect class="box" x="370" y="60" width="110" height="70" rx="6"></rect>
+      <text x="425" y="90" text-anchor="middle">Kafka</text>
+      <text class="lbl" x="425" y="106" text-anchor="middle">expression-events</text>
+      <line class="edge" x1="320" y1="95" x2="368" y2="95" marker-end="url(#arr2)"></line>
+      <text class="lbl" x="344" y="84" text-anchor="middle">publish</text>
+      <rect class="box" x="530" y="60" width="90" height="70" rx="6"></rect>
+      <text x="575" y="90" text-anchor="middle">Notifier</text>
+      <text class="lbl" x="575" y="106" text-anchor="middle">Kotlin</text>
+      <line class="edge" x1="480" y1="95" x2="528" y2="95" marker-end="url(#arr2)"></line>
+      <text class="lbl" x="504" y="84" text-anchor="middle">consume</text>
+      <line class="edge" x1="620" y1="75" x2="660" y2="30" marker-end="url(#arr2)"></line>
+      <text x="665" y="28">In-app bell</text>
+      <line class="edge" x1="620" y1="95" x2="660" y2="95" marker-end="url(#arr2)"></line>
+      <text x="665" y="99">Email</text>
+      <line class="edge" x1="620" y1="115" x2="660" y2="160" marker-end="url(#arr2)"></line>
+      <text x="665" y="166">Telegram</text>
+      <text class="lbl" x="20" y="190">The change and its event are saved together, so no notification is ever lost or sent for a change that was rolled back.</text>
+    </svg>
+    <figcaption>How a notification travels. The event is written in the same database transaction as the change, then relayed to Kafka; the notifier decides the channel. For a single family a plain in-process event would do; Kafka is there for the portfolio, and the README says so.</figcaption>
+  </figure>
+
+  <h2 id="nav">13. Navigation</h2>
+  <p>v2 worried about forgotten Back buttons. The rule that removes the problem: pages do not have their own Back buttons. The browser's back gesture, backed by the router's history, returns to wherever the user came from. Each page shows one explicit parent link in the header instead, which is always the same regardless of route taken:</p>
+  <ul>
+    <li>Group activity, Create/edit group, Group users: parent is My Groups.</li>
+    <li>Expression: parent is the group.</li>
+    <li>A user's expressions: parent is Group users.</li>
+    <li>Profile, Administration: parent is My Groups.</li>
+  </ul>
+  <p>After Save, Submit, Register and Login the app navigates to the page named in that section; after Delete or Leave it goes to the parent.</p>
+
+  <h2 id="tech">14. Technology and hosting</h2>
+  <p>The project serves two purposes: a working tool for a family, and a portfolio piece that shows the technologies job postings ask for that my résumé currently lists as basic: Kotlin, Kafka, caching, PostgreSQL, TypeScript, React.</p>
+  <div class="two">
+    <div>
+      <h3>Backend</h3>
+      <ul>
+        <li>Spring Boot 3, Java 21, one deployable application organised by domain: auth, groups, expressions, comments, notifications, outbox.</li>
+        <li>Notifier as a separate small service in Kotlin, consuming the Kafka topic.</li>
+        <li>PostgreSQL with Flyway migrations.</li>
+        <li>Spring Security with session cookies; password reset by emailed token.</li>
+        <li>Spring Cache with Caffeine for the group list and unread counters.</li>
+        <li>Testcontainers for integration tests, including one that fires twenty concurrent Take Care requests and asserts exactly one wins.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Frontend</h3>
+      <ul>
+        <li>React with TypeScript, built with Vite.</li>
+        <li>React Router for pages, TanStack Query for data.</li>
+        <li>Installable as a progressive web app so it sits on the phone's home screen.</li>
+        <li>Narrow layout first; the same pages widen on a desktop.</li>
+      </ul>
+      <h3>Hosting</h3>
+      <ul>
+        <li>One Docker Compose file runs postgres, kafka, api, notifier, web, and Mailpit.</li>
+        <li>A small virtual server, one for the family instance and one for the demo.</li>
+        <li>GitHub Actions runs the tests on every push.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Take Care under load</h3>
+  <p>Two members may press Take Care at the same time. The claim is one conditional update, which the database executes atomically:</p>
+  <pre>UPDATE expressions
+   SET implementer_id = :me, status = 'IN_PROCESS', version = version + 1
+ WHERE id = :id AND implementer_id IS NULL AND status = 'EXPRESSED'</pre>
+  <p>If no row was changed, someone else won and the server answers 409 Conflict. Optimistic locking with a version column covers ordinary edits; no pessimistic lock is needed anywhere.</p>
+
+  <h3>The public demo</h3>
+  <p>The family instance is private. A second instance at a <code>demo.</code> address is seeded with a fictional family and has three buttons on its login page: log in as Alice, Bob, or Carol. Reviewers can create wishes, take care of them from another browser, and watch the notification arrive. The Mailpit inbox is exposed on the demo so the emails can be seen too. The demo database resets every night. The README links to it, shows the architecture diagram above, and states plainly that Kafka is oversized for a family and why it is there anyway.</p>
+
+  <h2 id="log">15. Decision log</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Open in v2</th><th>Decided</th><th>Alternative kept in mind</th></tr>
+    <tr><td>How members are chosen for a group</td><td>Email invitation plus optional share link</td><td>A picker over the whole user list, if the system only ever has one family</td></tr>
+    <tr><td>Unique user names</td><td>Dropped; email is the identifier</td><td></td></tr>
+    <tr><td>Which click claims an expression</td><td>Take Care itself</td><td></td></tr>
+    <tr><td>Incognito in comments</td><td>Signed "Anonymous helper"</td><td>Drop the Incognito option entirely</td></tr>
+    <tr><td>Delete while In Process</td><td>Allowed, implementer notified</td><td>Blocked until released</td></tr>
+    <tr><td>When comments close</td><td>At In Possession</td><td>At Provided, as in v2</td></tr>
+    <tr><td>Provided but Got it never ticked</td><td>Stays in Provided; nothing expires</td><td>A reminder after 14 days</td></tr>
+    <tr><td>Members leaving or being removed</td><td>Expressions stay, implementations are released, admin hands over before leaving</td><td></td></tr>
+    <tr><td>Administrator login</td><td>Role on a normal account</td><td></td></tr>
+    <tr><td>Group status New/Working</td><td>Computed, not stored</td><td></td></tr>
+    <tr><td>ID columns in lists</td><td>Removed from the screen</td><td></td></tr>
+    <tr><td>Notifications: where</td><td>In-app first, email second, Telegram bot later</td><td>WhatsApp Business API: costly and slow to get approved</td></tr>
+    <tr><td>Notifications: how</td><td>Outbox table, Kafka, Kotlin notifier</td><td>A Spring application event, for a single deployment</td></tr>
+    <tr><td>Take Care thread safety</td><td>Conditional update, 409 on loss</td><td>Pessimistic lock: correct but blocks</td></tr>
+    <tr><td>Back buttons</td><td>Browser history plus one parent link per page</td><td></td></tr>
+    <tr><td>Demo for the portfolio</td><td>Second seeded instance with log-in-as buttons and a nightly reset</td><td></td></tr>
+  </table></div>
+
+  <h2 id="later">16. Left for later</h2>
+  <ul>
+    <li>Telegram channel. The in-app and email channels come first; the bot is added once they work.</li>
+    <li>Preview image from a product link. Nice, and a natural asynchronous job, but the manual picture upload ships first.</li>
+    <li>"Sign in with Google".</li>
+    <li>Angular. The job postings mention it, but one frontend framework is enough for one project; React is the choice.</li>
+    <li>Reminders for expressions stuck in Provided.</li>
+  </ul>
+</main>
