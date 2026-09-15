@@ -12,6 +12,7 @@ const base: ExpressionView = {
   implementer: null,
   status: "EXPRESSED",
   description: "Kindle case, like this: https://example.com/case",
+  links: ["https://example.com/case-2"],
   pictureUrl: null,
   wantedBy: "2026-12-01",
   providingBy: null,
@@ -53,6 +54,7 @@ describe("Expression page", () => {
     expect(await screen.findByRole("button", { name: "Take care" })).toBeInTheDocument();
     expect(screen.getByLabelText(/Incognito/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "https://example.com/case" })).toHaveAttribute("target", "_blank");
+    expect(screen.getByRole("link", { name: "↗ example.com" })).toHaveAttribute("href", "https://example.com/case-2");
     expect(screen.queryByRole("button", { name: "Submit" })).not.toBeInTheDocument();
   });
 

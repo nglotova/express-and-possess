@@ -94,9 +94,10 @@ public abstract class ApiTest {
     }
 
     /** Body for the creator's Submit, carrying the version from the last response. */
-    protected static Map<String, Object> wishBody(String description, String wantedBy, JsonNode current) {
+    protected Map<String, Object> wishBody(String description, String wantedBy, JsonNode current) {
         Map<String, Object> body = new HashMap<>();
         body.put("description", description);
+        body.put("links", current.has("links") ? json.convertValue(current.get("links"), java.util.List.class) : java.util.List.of());
         body.put("wantedBy", wantedBy);
         body.put("version", current.get("version").asLong());
         return body;

@@ -82,27 +82,49 @@ public class ExpressionService {
 
     // ---- the creator's section -----------------------------------------------------
 
-    public ExpressionView create(Long groupId, Long creatorId, String description, LocalDate wantedBy) {
+    public ExpressionView create(Long groupId, Long creatorId, String description, List<String> links,
+                                 LocalDate wantedBy) {
         Group group = groups.activeGroupFor(groupId, creatorId);
-        Expression expression = expressions.save(new Expression(group.getId(), creatorId, description.trim(), wantedBy));
+        Expression expression = expressions.save(
+                new Expression(group.getId(), creatorId, description.trim(), cleanLinks(links), wantedBy));
         events.publishEvent(new ExpressionChanged(ExpressionChanged.Type.CREATED, expression.getId(), groupId, creatorId));
         return changed(expression.getId(), creatorId);
     }
 
     /**
-     * The creator's Submit. The description can only change while nobody has taken care;
-     * the date can change until the wish is received. Version guards against overwriting
-     * someone else's edit.
+     * The creator's Save. The description and links can only change while nobody has
+     * taken care; the date can change until the wish is received. Version guards against
+     * overwriting someone else's edit.
      */
-    public ExpressionView editWish(Long id, Long userId, String description, LocalDate wantedBy, long version) {
+    public ExpressionView editWish(Long id, Long userId, String description, List<String> links,
+                                   LocalDate wantedBy, long version) {
         Expression expression = editable(id, userId);
         requireCreator(expression, userId);
         requireVersion(expression, version);
-        if (!expression.is(EXPRESSED) && !expression.getDescription().equals(description.trim())) {
-            throw ApiException.conflict("The description is locked while someone takes care of this wish");
+        List<String> cleaned = cleanLinks(links);
+        if (!expression.is(EXPRESSED)
+                && (!expression.getDescription().equals(description.trim()) || !expression.getLinks().equals(cleaned))) {
+            throw ApiException.conflict("The description and links are locked while someone takes care of this wish");
         }
-        expression.editWish(description.trim(), wantedBy);
+        expression.editWish(description.trim(), cleaned, wantedBy);
         return changed(id, userId);
+    }
+
+    /** Trimmed, non-empty, web addresses only, at most ten. */
+    private static List<String> cleanLinks(List<String> links) {
+        if (links == null) {
+            return List.of();
+        }
+        List<String> cleaned = links.stream().map(String::trim).filter(l -> !l.isEmpty()).distinct().toList();
+        if (cleaned.size() > 10) {
+            throw ApiException.badRequest("At most ten links per wish");
+        }
+        for (String link : cleaned) {
+            if (!(link.startsWith("http://") || link.startsWith("https://")) || link.length() > 500) {
+                throw ApiException.badRequest("Links must start with http:// or https://");
+            }
+        }
+        return cleaned;
     }
 
     /** The creator ticks Got it. */
@@ -282,7 +304,7 @@ public class ExpressionService {
                 e.getId(), e.getGroupId(),
                 new PersonRef(e.getCreatorId(), names.get(e.getCreatorId())),
                 implementer,
-                e.getStatus(), e.getDescription(), e.getPictureUrl(), e.getWantedBy(), e.getProvidingBy(),
+                e.getStatus(), e.getDescription(), e.getLinks(), e.getPictureUrl(), e.getWantedBy(), e.getProvidingBy(),
                 seesImplementer && e.isIncognito(),
                 e.getVersion(),
                 open && creator,

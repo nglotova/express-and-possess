@@ -245,8 +245,32 @@ h2 {
 }
 
 .row-title {
+  display: block;
   font-weight: 600;
+  color: inherit;
+  text-decoration: none;
   overflow-wrap: anywhere;
+  white-space: pre-line;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.row-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  font-size: 0.85rem;
+  margin-top: 0.15rem;
+}
+
+.row-links a {
+  text-decoration: none;
+}
+
+.row-links a:hover {
+  text-decoration: underline;
 }
 
 .row-creator {
@@ -265,6 +289,12 @@ h2 {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  text-decoration: none;
+  align-self: stretch;
+}
+
+a.thumb {
+  text-decoration: none;
 }
 
 .thumb {
@@ -642,4 +672,50 @@ select {
   margin-top: 2rem;
   padding-top: 1rem;
   border-top: 1px solid var(--line);
+}
+
+/* ---- links ----------------------------------------------------------------- */
+
+.link-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.link-list {
+  list-style: none;
+  margin: 0.5rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.link-list a {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link-list .small {
+  overflow-wrap: anywhere;
+}
+
+.picture-pick {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.picture-pick img {
+  width: 4.5rem;
+  height: 4.5rem;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+
+.picture-pick .button {
+  cursor: pointer;
 }

@@ -145,6 +145,30 @@ class ExpressionLifecycleTest extends ApiTest {
     }
 
     @Test
+    void linksAreTheirOwnFieldAndLockWithTheDescription() throws Exception {
+        Member natasha = register("Natasha");
+        Member andrei = register("Andrei");
+        long group = family(natasha, andrei);
+
+        postAs(natasha, "/api/groups/" + group + "/expressions",
+                Map.of("description", "Mini chainsaw", "links", java.util.List.of("not a link")))
+                .andExpect(status().isBadRequest());
+        JsonNode wish = bodyOf(postAs(natasha, "/api/groups/" + group + "/expressions",
+                Map.of("description", "Mini chainsaw", "links",
+                        java.util.List.of(" https://www.example.com/chainsaw ", "https://www.example.com/chainsaw",
+                                "https://www.example.com/battery")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.links.length()").value(2))
+                .andExpect(jsonPath("$.links[0]").value("https://www.example.com/chainsaw")));
+        long id = wish.get("id").asLong();
+
+        JsonNode taken = bodyOf(postAs(andrei, "/api/expressions/" + id + "/take-care"));
+        Map<String, Object> body = wishBody("Mini chainsaw", null, taken);
+        body.put("links", java.util.List.of("https://www.example.com/other"));
+        putAs(natasha, "/api/expressions/" + id + "/wish", body).andExpect(status().isConflict());
+    }
+
+    @Test
     void aStaleVersionIsRefused() throws Exception {
         Member natasha = register("Natasha");
         long group = family(natasha);

@@ -8,6 +8,9 @@ import { ErrorText, Field } from "../components/Form";
 import { PageHeader } from "../components/Layout";
 import { StatusChip } from "../components/StatusChip";
 import { formatDate, formatTime } from "../components/format";
+import { linkify } from "../components/links";
+import { LinkList, LinksInput } from "../components/LinksInput";
+import { prepareImage } from "../components/image";
 
 /**
  * The expression page: the wish (creator edits), taking care (implementer edits), and the
@@ -24,7 +27,7 @@ export function ExpressionPage() {
     <>
       <Header expression={e} />
       <WishSection expression={e} />
-      <CareSection expression={e} />
+      <CareSection key={`${e.status}:${e.implementer?.id ?? ""}`} expression={e} />
       <Comments expression={e} />
     </>
   );
@@ -45,24 +48,28 @@ function WishSection({ expression: e }: { expression: ExpressionView }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [description, setDescription] = useState(e.description);
+  const [links, setLinks] = useState<string[]>(e.links);
   const [wantedBy, setWantedBy] = useState(e.wantedBy ?? "");
   const [gotIt, setGotIt] = useState(false);
   useEffect(() => {
     setDescription(e.description);
+    setLinks(e.links);
     setWantedBy(e.wantedBy ?? "");
-  }, [e.description, e.wantedBy]);
+  }, [e.description, e.links, e.wantedBy]);
+  const cleanLinks = links.map((l) => l.trim()).filter((l) => l !== "");
 
   const save = useExpressionAction(e.id, () =>
     api<ExpressionView>(`/api/expressions/${e.id}/wish`, "PUT", {
       description,
+      links: cleanLinks,
       wantedBy: wantedBy || null,
       version: e.version,
     }),
   );
   const received = useExpressionAction(e.id, () => api<ExpressionView>(`/api/expressions/${e.id}/received`, "POST"));
-  const picture = useExpressionAction(e.id, (file: File) => {
+  const picture = useExpressionAction(e.id, async (file: File) => {
     const form = new FormData();
-    form.append("file", file);
+    form.append("file", await prepareImage(file));
     return api<ExpressionView>(`/api/expressions/${e.id}/picture`, "POST", form);
   });
   const remove = useMutation({
@@ -80,6 +87,11 @@ function WishSection({ expression: e }: { expression: ExpressionView }) {
   }
 
   const descriptionLocked = e.status !== "EXPRESSED";
+  const changed =
+    description !== e.description ||
+    cleanLinks.join("\n") !== e.links.join("\n") ||
+    (wantedBy || null) !== e.wantedBy ||
+    gotIt;
   return (
     <section className="section">
       <div className="section-head">
@@ -91,7 +103,7 @@ function WishSection({ expression: e }: { expression: ExpressionView }) {
           {e.pictureUrl ? <img src={e.pictureUrl} alt="" /> : <span className="muted">no picture</span>}
           {e.canEditWish && (
             <label className="link file">
-              {picture.isPending ? "Uploading…" : e.pictureUrl ? "Replace picture" : "Add picture"}
+              {picture.isPending ? "Uploading…" : e.pictureUrl ? "Replace picture" : "Add or take a picture"}
               <input
                 type="file"
                 accept="image/*"
@@ -116,6 +128,7 @@ function WishSection({ expression: e }: { expression: ExpressionView }) {
                 disabled={descriptionLocked}
               />
             </Field>
+            {descriptionLocked ? <LinkList links={e.links} /> : <LinksInput links={links} onChange={setLinks} />}
             <Field label="By date">
               <input type="date" value={wantedBy} onChange={(ev) => setWantedBy(ev.target.value)} />
             </Field>
@@ -127,9 +140,10 @@ function WishSection({ expression: e }: { expression: ExpressionView }) {
             )}
             <ErrorText error={save.error ?? received.error ?? picture.error ?? remove.error} />
             <div className="button-row">
-              <button type="submit" className="primary" disabled={save.isPending || received.isPending}>
-                Submit
+              <button type="submit" className="primary" disabled={!changed || save.isPending || received.isPending}>
+                {gotIt ? "Confirm: got it" : "Save"}
               </button>
+              {save.isSuccess && !changed && <span className="muted">Saved.</span>}
               {e.canDelete && (
                 <button
                   type="button"
@@ -146,6 +160,7 @@ function WishSection({ expression: e }: { expression: ExpressionView }) {
         ) : (
           <div className="grow">
             <p className="prose">{linkify(e.description)}</p>
+            <LinkList links={e.links} />
             {e.wantedBy && <p className="muted">Wanted by {formatDate(e.wantedBy)}</p>}
           </div>
         )}
@@ -176,6 +191,7 @@ function CareSection({ expression: e }: { expression: ExpressionView }) {
     }),
   );
   const release = useExpressionAction(e.id, () => api<ExpressionView>(`/api/expressions/${e.id}/release`, "POST"));
+  const changed = incognito !== e.incognito || (providingBy || null) !== e.providingBy || provided;
 
   if (e.canTakeCare) {
     return (
@@ -223,9 +239,10 @@ function CareSection({ expression: e }: { expression: ExpressionView }) {
           </label>
           <ErrorText error={save.error ?? release.error} />
           <div className="button-row">
-            <button type="submit" className="primary" disabled={save.isPending}>
-              Submit
+            <button type="submit" className="primary" disabled={!changed || save.isPending}>
+              {provided ? "Confirm: provided" : "Save"}
             </button>
+            {save.isSuccess && !changed && <span className="muted">Saved.</span>}
             {e.canRelease && (
               <button
                 type="button"
@@ -287,18 +304,4 @@ function Comments({ expression: e }: { expression: ExpressionView }) {
 function firstLine(text: string) {
   const line = text.trim().split("\n")[0];
   return line.length > 60 ? line.slice(0, 57) + "…" : line;
-}
-
-/** Renders the description with links that open in a new tab, as the spec asks. */
-function linkify(text: string) {
-  const parts = text.split(/(https?:\/\/[^\s]+)/g);
-  return parts.map((part, i) =>
-    /^https?:\/\//.test(part) ? (
-      <a key={i} href={part} target="_blank" rel="noopener noreferrer">
-        {part}
-      </a>
-    ) : (
-      <span key={i}>{part}</span>
-    ),
-  );
 }

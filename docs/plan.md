@@ -123,3 +123,20 @@ architecture diagram in the README. Still to do once the host exists: run the st
 - Docker Desktop running whenever tests run (Testcontainers needs it).
 - A decision on hosting before M7 (a small VPS is assumed).
 - A GitHub repository name when the code is ready to push.
+
+## After the plan: changes from family testing (2026-09-15)
+
+- Product links are a separate field on a wish (one or more), not text inside the
+  description, so they are always clickable. Spec section 9 changes accordingly; migration V2.
+- Opening an invitation link as the invited person accepts it without a further click.
+- The edit buttons on the wish page read Save and stay disabled until something changed.
+- An invitation opened while logged in as someone else explains it and offers Log out.
+- Rows on the group page show the full description and the links as their own links.
+- Release resets the taking-care section, including the Incognito checkbox.
+- A picture can be added on the New wish page. Photos are shrunk to 1600 px and converted to
+  JPEG in the browser before upload, so large phone photos and iPhone HEIC files go through.
+
+Open: the site is not reachable from a phone on the same Wi-Fi with `npm run dev -- --host`.
+Not yet diagnosed. Likely causes to check first: the dev server not started with `--host`,
+the macOS firewall blocking incoming connections to node, or the phone on a guest or
+isolated Wi-Fi network.

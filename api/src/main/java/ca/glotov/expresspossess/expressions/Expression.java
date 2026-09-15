@@ -9,9 +9,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "expressions")
@@ -40,6 +44,11 @@ public class Expression {
     @Column(name = "picture_url")
     private String pictureUrl;
 
+    /** Product links, shown as links everywhere. Locked together with the description. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(nullable = false)
+    private List<String> links = new ArrayList<>();
+
     @Column(name = "wanted_by")
     private LocalDate wantedBy;
 
@@ -63,10 +72,11 @@ public class Expression {
     protected Expression() {
     }
 
-    public Expression(Long groupId, Long creatorId, String description, LocalDate wantedBy) {
+    public Expression(Long groupId, Long creatorId, String description, List<String> links, LocalDate wantedBy) {
         this.groupId = groupId;
         this.creatorId = creatorId;
         this.description = description;
+        this.links = new ArrayList<>(links);
         this.wantedBy = wantedBy;
     }
 
@@ -96,6 +106,10 @@ public class Expression {
 
     public String getPictureUrl() {
         return pictureUrl;
+    }
+
+    public List<String> getLinks() {
+        return List.copyOf(links);
     }
 
     public LocalDate getWantedBy() {
@@ -132,8 +146,9 @@ public class Expression {
 
     // Mutations are named after what happens on the page, not after fields.
 
-    void editWish(String description, LocalDate wantedBy) {
+    void editWish(String description, List<String> links, LocalDate wantedBy) {
         this.description = description;
+        this.links = new ArrayList<>(links);
         this.wantedBy = wantedBy;
         touch();
     }

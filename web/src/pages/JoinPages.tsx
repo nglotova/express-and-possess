@@ -1,7 +1,8 @@
+import { useEffect } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
-import { useMe } from "../api/queries";
+import { useLogout, useMe } from "../api/queries";
 import { ErrorText } from "../components/Form";
 
 /** The page an emailed invitation link opens. Public until the person accepts. */
@@ -14,7 +15,17 @@ export function InvitePage() {
   });
   const accept = useJoin(() => api<{ groupId: number }>(`/api/invitations/${token}/accept`, "POST"));
   const me = useMe();
+  const logout = useLogout();
   const here = `/invite?token=${encodeURIComponent(token)}`;
+
+  // Opening the link as the invited person is the acceptance; no extra click needed.
+  const invitedMe = !!me.data && !!info.data && me.data.email.toLowerCase() === info.data.email.toLowerCase();
+  useEffect(() => {
+    if (invitedMe && accept.isIdle) {
+      accept.mutate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [invitedMe]);
 
   if (info.isPending) return <main className="page narrow">Loading…</main>;
   if (info.isError || !info.data) {
@@ -31,12 +42,26 @@ export function InvitePage() {
       <p>
         {info.data.invitedBy} invited <strong>{info.data.email}</strong> to the group “{info.data.groupName}”.
       </p>
-      {me.data ? (
+      {me.data && me.data.email.toLowerCase() !== info.data.email.toLowerCase() ? (
+        <>
+          <p>
+            You are logged in as <strong>{me.data.name}</strong> ({me.data.email}), and this invitation is for a
+            different address. Log out, then open the link again and register or log in as {info.data.email}.
+          </p>
+          <button className="primary" onClick={() => logout.mutate()} disabled={logout.isPending}>
+            Log out
+          </button>
+        </>
+      ) : me.data ? (
         <>
           <ErrorText error={accept.error} />
-          <button className="primary" onClick={() => accept.mutate()} disabled={accept.isPending}>
-            Accept as {me.data.name}
-          </button>
+          {accept.isError ? (
+            <button className="primary" onClick={() => accept.mutate()} disabled={accept.isPending}>
+              Try again
+            </button>
+          ) : (
+            <p className="muted">Joining as {me.data.name}…</p>
+          )}
         </>
       ) : (
         <p className="links">

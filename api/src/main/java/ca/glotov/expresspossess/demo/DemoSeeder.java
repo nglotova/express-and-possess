@@ -96,25 +96,23 @@ public class DemoSeeder {
         long g = family.id();
 
         // Carol's wish, nobody has taken it: shows the flashing mark on My Groups.
-        expressions.create(g, carol.getId(),
-                "Over-ear headphones, noise cancelling\nhttps://www.example.com/headphones/quiet-40",
-                LocalDate.now().plusDays(28));
+        expressions.create(g, carol.getId(), "Over-ear headphones, noise cancelling",
+                List.of("https://www.example.com/headphones/quiet-40"), LocalDate.now().plusDays(28));
 
         // Alice's wish, Bob is on it incognito: shows "Incognito" and "Anonymous helper".
-        ExpressionView kindle = expressions.create(g, alice.getId(),
-                "Kindle case, a blue fabric one like this: https://www.example.com/kindle-case",
-                LocalDate.now().plusDays(60));
+        ExpressionView kindle = expressions.create(g, alice.getId(), "Kindle case, a blue fabric one like this",
+                List.of("https://www.example.com/kindle-case"), LocalDate.now().plusDays(60));
         expressions.takeCare(kindle.id(), bob.getId(), true);
         expressions.comment(kindle.id(), bob.getId(), "Does it have to be blue?");
         expressions.comment(kindle.id(), alice.getId(), "Any dark colour is fine, thank you!");
 
         // Bob's wish, Carol has provided it: waiting for Bob's "Got it".
-        ExpressionView pump = expressions.create(g, bob.getId(), "Bicycle pump with a pressure gauge", null);
+        ExpressionView pump = expressions.create(g, bob.getId(), "Bicycle pump with a pressure gauge", List.of(), null);
         ExpressionView taken = expressions.takeCare(pump.id(), carol.getId(), false);
         expressions.editCare(pump.id(), carol.getId(), false, LocalDate.now().plusDays(3), true, taken.version());
 
         // Carol's older wish, received: read-only, comments closed.
-        ExpressionView socks = expressions.create(g, carol.getId(), "Wool hiking socks, size 39", null);
+        ExpressionView socks = expressions.create(g, carol.getId(), "Wool hiking socks, size 39", List.of(), null);
         ExpressionView socksTaken = expressions.takeCare(socks.id(), alice.getId(), false);
         expressions.editCare(socks.id(), alice.getId(), false, null, true, socksTaken.version());
         expressions.markReceived(socks.id(), carol.getId());

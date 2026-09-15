@@ -65,6 +65,7 @@ export interface ExpressionView {
   implementer: PersonRef | null;
   status: ExpressionStatus;
   description: string;
+  links: string[];
   pictureUrl: string | null;
   wantedBy: string | null;
   providingBy: string | null;
