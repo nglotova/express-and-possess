@@ -12,8 +12,8 @@ export default defineConfig({
         name: "Express & Possess",
         short_name: "Express",
         description: "Wish lists for a group: express a wish, let someone take care of it.",
-        theme_color: "#0f6b6b",
-        background_color: "#f6f7f5",
+        theme_color: "#0e7c80",
+        background_color: "#eef9f8",
         display: "standalone",
         start_url: "/",
         icons: [
@@ -28,6 +28,8 @@ export default defineConfig({
     }),
   ],
   server: {
+    // Listen on the home network too, so a phone on the same Wi-Fi can open the app.
+    host: true,
     port: 5173,
     proxy: { "/api": "http://localhost:8080" },
   },

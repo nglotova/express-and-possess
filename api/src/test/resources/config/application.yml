@@ -1,0 +1,5 @@
+# Tests never reach out to real shops. LinkPreviewTest switches the feature on against a
+# shop served from the test machine itself.
+app:
+  link-preview:
+    enabled: false

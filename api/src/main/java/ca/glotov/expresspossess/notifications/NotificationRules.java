@@ -1,6 +1,7 @@
 package ca.glotov.expresspossess.notifications;
 
 import ca.glotov.expresspossess.auth.AccountService;
+import ca.glotov.expresspossess.common.Links;
 import ca.glotov.expresspossess.expressions.ExpressionChanged;
 import ca.glotov.expresspossess.expressions.ExpressionQueries;
 import ca.glotov.expresspossess.expressions.ExpressionStatus;
@@ -97,7 +98,7 @@ class NotificationRules {
     }
 
     private static String quote(String description) {
-        String firstLine = description.strip().lines().findFirst().orElse("");
+        String firstLine = Links.withoutLinks(description).lines().findFirst().orElse(description.strip());
         return "\"" + (firstLine.length() > 60 ? firstLine.substring(0, 57) + "..." : firstLine) + "\"";
     }
 }

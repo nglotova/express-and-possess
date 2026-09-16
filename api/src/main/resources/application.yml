@@ -16,6 +16,12 @@ spring:
     port: ${MAIL_PORT:1025}
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  cache:
+    type: caffeine
+    cache-names: linkPreviews
+    # Shop link previews: the same link is fetched at most once an hour.
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=1h
   mvc:
     problemdetails:
       enabled: true
@@ -34,6 +40,10 @@ app:
   outbox-poll-interval: 1s
   # Comma-separated. Register with one of these addresses to get the administration page.
   admin-emails: ${APP_ADMIN_EMAILS:}
+  link-preview:
+    # When a wish has no picture, take one from the first link in its description.
+    enabled: ${APP_LINK_PREVIEW_ENABLED:true}
+    allow-private-addresses: false
   demo:
     enabled: ${APP_DEMO_ENABLED:false}
     reset-cron: "0 0 3 * * *"

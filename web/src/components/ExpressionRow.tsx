@@ -2,16 +2,16 @@ import { Link } from "react-router";
 import type { ExpressionView } from "../api/types";
 import { StatusChip } from "./StatusChip";
 import { formatDate } from "./format";
-import { hostOf, splitLinks } from "./links";
+import { findLinks, labelLinks, withoutLinks } from "./links";
 
 /**
- * One row of a wish list. The text opens the wish; any web address in the description
- * becomes its own link under the text that opens the shop in a new tab, since a link
- * cannot sit inside another link.
+ * One row of a wish list. The text opens the wish; each web address found in the
+ * description becomes its own link under the text and opens the shop in a new tab, since a
+ * link cannot sit inside another link.
  */
 export function ExpressionRow({ expression, showCreator }: { expression: ExpressionView; showCreator?: boolean }) {
-  const { text, urls: inText } = splitLinks(expression.description);
-  const urls = Array.from(new Set([...expression.links, ...inText]));
+  const text = withoutLinks(expression.description);
+  const links = labelLinks(findLinks(expression.description));
   const meta: string[] = [];
   if (expression.wantedBy) meta.push(`by ${formatDate(expression.wantedBy)}`);
   if (expression.providingBy) meta.push(`providing by ${formatDate(expression.providingBy)}`);
@@ -25,14 +25,14 @@ export function ExpressionRow({ expression, showCreator }: { expression: Express
       <div className="row-body">
         <Link to={to} className="row-title">
           {showCreator && <span className="row-creator">{expression.creator.name} · </span>}
-          {text || expression.description}
+          {text || links[0]?.label || expression.description}
         </Link>
         <div className="row-meta">{meta.length ? meta.join(" · ") : "no date"}</div>
-        {urls.length > 0 && (
+        {links.length > 0 && (
           <div className="row-links">
-            {urls.map((url) => (
+            {links.map(({ url, label }) => (
               <a key={url} href={url} target="_blank" rel="noopener noreferrer">
-                ↗ {hostOf(url)}
+                ↗ {label}
               </a>
             ))}
           </div>

@@ -49,6 +49,22 @@ public class FileStorage {
         return "/api/files/" + name;
     }
 
+    /** Stores picture bytes fetched from a shop, under the same type rules as an upload. */
+    public String store(byte[] bytes, String contentType) {
+        String extension = EXTENSIONS.get(contentType);
+        if (extension == null || bytes.length == 0) {
+            throw ApiException.badRequest("Only JPEG, PNG, WebP or GIF pictures are accepted");
+        }
+        String name = UUID.randomUUID() + "." + extension;
+        try {
+            Files.createDirectories(root);
+            Files.write(root.resolve(name), bytes);
+        } catch (IOException e) {
+            throw new IllegalStateException("Could not store " + name, e);
+        }
+        return "/api/files/" + name;
+    }
+
     Resource load(String name) {
         Path path = root.resolve(name).normalize();
         if (!path.startsWith(root) || !Files.isRegularFile(path)) {

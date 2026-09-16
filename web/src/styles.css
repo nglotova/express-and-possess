@@ -1,40 +1,59 @@
 /* Express & Possess. Mobile first; the same layout widens to a single 40rem column. */
 
 :root {
-  --paper: #f6f7f5;
+  --paper: #eef9f8;
   --paper-2: #ffffff;
-  --ink: #1b2126;
-  --ink-2: #4f5a62;
-  --ink-3: #8a949b;
-  --line: #d5dad6;
-  --accent: #0f6b6b;
+  --topbar: #dcf4f1;
+  --ink: #102a2b;
+  --ink-2: #3f5f60;
+  --ink-3: #587677;
+  --line: #c6e6e2;
+  --shadow: rgba(14, 124, 128, 0.1);
+  --accent: #0e7c80;
+  --accent-strong: #09626a;
+  --accent-bright: #3cc9bd;
   --accent-ink: #ffffff;
-  --accent-soft: #d9ebea;
+  --accent-soft: #d2f1ee;
   --danger: #b3261e;
-  --st-expressed: #0f6b6b;
+  --danger-soft: #fbe9e7;
+  --danger-strong: #8f1d17;
+  --danger-ink: #ffffff;
+  --backdrop: rgba(16, 42, 43, 0.45);
+  --shadow-strong: rgba(16, 42, 43, 0.25);
+  --st-expressed: #0e7c80;
   --st-process: #a7671a;
   --st-provided: #2e7d4f;
-  --st-possession: #6b7378;
+  --st-possession: #5f7474;
   --bang: #c0392b;
-  --radius: 8px;
+  --radius: 16px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #151a1d;
-    --paper-2: #1d2428;
-    --ink: #e4e8e6;
-    --ink-2: #aab3b8;
-    --ink-3: #737d83;
-    --line: #2c353a;
-    --accent: #4fb5b0;
-    --accent-ink: #0d1517;
-    --accent-soft: #18302f;
+    --paper: #0b1c1e;
+    --paper-2: #11292c;
+    --topbar: #0f3033;
+    --ink: #e1f5f3;
+    --ink-2: #a6c7c4;
+    --ink-3: #86aaa7;
+    --line: #224542;
+    --shadow: rgba(0, 0, 0, 0.35);
+    --accent: #45d3c6;
+    --accent-strong: #7ae4da;
+    --accent-bright: #45d3c6;
+    --accent-ink: #062322;
+    --accent-soft: #11393a;
     --danger: #ff8a80;
-    --st-expressed: #4fb5b0;
-    --st-process: #d9a04a;
-    --st-provided: #5fbc85;
-    --st-possession: #8b959b;
+    --danger-soft: #3a1a18;
+    --danger-strong: #ffb1aa;
+    --danger-ink: #2a0d0b;
+    --backdrop: rgba(0, 0, 0, 0.6);
+    --shadow-strong: rgba(0, 0, 0, 0.5);
+    --st-expressed: #45d3c6;
+    --st-process: #e3a852;
+    --st-provided: #66c790;
+    --st-possession: #93acab;
+    --bang: #ff7a6e;
   }
 }
 
@@ -84,14 +103,14 @@ h2 {
   gap: 1rem;
   padding: 0.6rem 1rem;
   padding-top: max(0.6rem, env(safe-area-inset-top));
-  background: var(--paper-2);
-  border-bottom: 1px solid var(--line);
+  background: var(--topbar);
+  border-bottom: 2px solid var(--accent-bright);
 }
 
 .brand {
   font-weight: 800;
   text-decoration: none;
-  color: var(--ink);
+  color: var(--accent);
   letter-spacing: -0.01em;
 }
 
@@ -231,6 +250,7 @@ h2 {
   background: var(--paper-2);
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  box-shadow: 0 1px 3px var(--shadow);
   color: inherit;
   text-decoration: none;
 }
@@ -303,8 +323,8 @@ a.thumb {
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  border-radius: 6px;
-  background: var(--paper);
+  border-radius: 12px;
+  background: var(--accent-soft);
   border: 1px solid var(--line);
   overflow: hidden;
   font-size: 1.2rem;
@@ -380,8 +400,8 @@ a.thumb {
   display: inline-block;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.72rem;
-  padding: 0.05rem 0.45rem;
-  border-radius: 3px;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
   border: 1px solid currentColor;
   white-space: nowrap;
 }
@@ -448,7 +468,7 @@ textarea {
   width: 100%;
   padding: 0.55rem 0.65rem;
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 12px;
   background: var(--paper-2);
   color: var(--ink);
 }
@@ -481,9 +501,10 @@ a:focus-visible {
 button,
 .button {
   display: inline-block;
-  padding: 0.6rem 1rem;
-  border: 1px solid var(--accent);
-  border-radius: 6px;
+  padding: 0.6rem 1.3rem;
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+  transition: background-color 0.15s, border-color 0.15s;
   background: var(--paper-2);
   color: var(--accent);
   font-weight: 600;
@@ -500,6 +521,26 @@ button:disabled {
 .primary {
   background: var(--accent);
   color: var(--accent-ink);
+}
+
+button:not(:disabled):hover,
+.button:hover {
+  background: var(--accent-soft);
+}
+
+.primary:not(:disabled):hover,
+.button.primary:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+.danger:not(:disabled):hover {
+  background: var(--danger-soft);
+}
+
+button.link:not(:disabled):hover {
+  background: none;
+  text-decoration: underline;
 }
 
 .ghost {
@@ -573,6 +614,15 @@ button.link.danger {
 
 /* ---- expression page ------------------------------------------------------- */
 
+/* The Take care block: spaced like a form, with the button at its natural width. */
+.take-care {
+  align-items: flex-start;
+}
+
+.take-care p {
+  margin: 0;
+}
+
 .wish-body {
   display: flex;
   gap: 1rem;
@@ -594,7 +644,7 @@ button.link.danger {
   width: 6rem;
   height: 6rem;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: 14px;
   border: 1px solid var(--line);
 }
 
@@ -661,7 +711,7 @@ select {
   font: inherit;
   padding: 0.5rem;
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 12px;
   background: var(--paper-2);
   color: var(--ink);
 }
@@ -674,22 +724,15 @@ select {
   border-top: 1px solid var(--line);
 }
 
-/* ---- links ----------------------------------------------------------------- */
-
-.link-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0.5rem;
-  align-items: center;
-}
+/* ---- links and pictures ---------------------------------------------------- */
 
 .link-list {
   list-style: none;
-  margin: 0.5rem 0;
+  margin: 0.25rem 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.4rem;
 }
 
 .link-list a {
@@ -697,8 +740,34 @@ select {
   text-decoration: none;
 }
 
-.link-list .small {
+.link-list a:hover {
+  text-decoration: underline;
+}
+
+.link-url {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--ink-3);
   overflow-wrap: anywhere;
+}
+
+.picture-empty {
+  width: 6rem;
+  height: 6rem;
+  display: grid;
+  place-items: center;
+  padding: 0.4rem;
+  border: 1.5px dashed var(--line);
+  border-radius: 14px;
+  background: var(--accent-soft);
+  color: var(--ink-2);
+  font-size: 0.72rem;
+  line-height: 1.3;
+}
+
+.picture-source {
+  color: var(--ink-3);
+  font-size: 0.72rem;
 }
 
 .picture-pick {
@@ -712,10 +781,176 @@ select {
   width: 4.5rem;
   height: 4.5rem;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: 14px;
   border: 1px solid var(--line);
 }
 
 .picture-pick .button {
   cursor: pointer;
+}
+
+/* ---- link preview card ------------------------------------------------------- */
+
+.preview-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem;
+  background: var(--accent-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.preview-thumb {
+  width: 3.75rem;
+  height: 3.75rem;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--paper-2);
+  font-size: 1.4rem;
+}
+
+.preview-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-thumb.loading {
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preview-thumb.loading {
+    animation: none;
+  }
+}
+
+.preview-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.preview-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.preview-title.muted {
+  font-weight: 400;
+}
+
+.preview-host {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.preview-body button.link {
+  align-self: flex-start;
+  font-size: 0.8rem;
+}
+
+/* ---- confirmation dialog ----------------------------------------------------- */
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: var(--backdrop);
+  animation: fade-in 0.15s ease-out;
+}
+
+.dialog {
+  width: 100%;
+  max-width: 22rem;
+  padding: 1.25rem 1.25rem 1rem;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--accent-bright);
+  border-radius: 20px;
+  box-shadow: 0 12px 40px var(--shadow-strong);
+  animation: rise 0.18s ease-out;
+}
+
+.dialog h2 {
+  font-size: 1.15rem;
+  margin: 0 0 0.4rem;
+  text-wrap: balance;
+}
+
+.dialog p {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+}
+
+.danger-solid {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--danger-ink);
+}
+
+.danger-solid:not(:disabled):hover {
+  background: var(--danger-strong);
+  border-color: var(--danger-strong);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog-backdrop,
+  .dialog {
+    animation: none;
+  }
+}
+
+/* On a phone the dialog sits at the bottom, within reach of the thumb. */
+@media (max-width: 420px) {
+  .dialog-backdrop {
+    place-items: end center;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .dialog-buttons button {
+    flex: 1;
+  }
 }

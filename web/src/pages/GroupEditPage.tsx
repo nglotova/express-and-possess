@@ -7,6 +7,7 @@ import type { GroupDetail } from "../api/types";
 import { ErrorText, Field } from "../components/Form";
 import { PageHeader } from "../components/Layout";
 import { GroupStatusChip } from "../components/StatusChip";
+import { useConfirm } from "../components/ConfirmDialog";
 
 /**
  * Create a group, or edit one. The admin manages members here: invitations by email, the
@@ -105,6 +106,7 @@ function NameForm({ group }: { group: GroupDetail }) {
 
 function Members({ group, meId }: { group: GroupDetail; meId: number }) {
   const navigate = useNavigate();
+  const ask = useConfirm();
   const invalidate = useInvalidateGroups();
   const admin = group.myRole === "ADMIN";
   const call = useMutation({
@@ -137,10 +139,14 @@ function Members({ group, meId }: { group: GroupDetail; meId: number }) {
                 </button>
                 <button
                   className="link danger"
-                  onClick={() => {
-                    if (confirm(`Remove ${m.name} from ${group.name}?`)) {
-                      call.mutate({ path: `/api/groups/${group.id}/members/${m.userId}`, method: "DELETE" });
-                    }
+                  onClick={async () => {
+                    const ok = await ask({
+                      title: `Remove ${m.name}?`,
+                      message: `${m.name} will no longer see ${group.name}. Anything they were taking care of goes back to the group.`,
+                      confirmLabel: "Remove",
+                      danger: true,
+                    });
+                    if (ok) call.mutate({ path: `/api/groups/${group.id}/members/${m.userId}`, method: "DELETE" });
                   }}
                 >
                   Remove
@@ -169,8 +175,14 @@ function Members({ group, meId }: { group: GroupDetail; meId: number }) {
       {!admin && (
         <button
           className="danger"
-          onClick={() => {
-            if (confirm(`Leave ${group.name}?`)) leave.mutate();
+          onClick={async () => {
+            const ok = await ask({
+              title: `Leave ${group.name}?`,
+              message: "You will no longer see its wishes. Anything you were taking care of goes back to the group.",
+              confirmLabel: "Leave",
+              danger: true,
+            });
+            if (ok) leave.mutate();
           }}
         >
           Leave group
@@ -259,6 +271,7 @@ function ShareLink({ group }: { group: GroupDetail }) {
 
 function Lifecycle({ group }: { group: GroupDetail }) {
   const navigate = useNavigate();
+  const ask = useConfirm();
   const invalidate = useInvalidateGroups();
   const act = useMutation({
     mutationFn: ({ path, method }: { path: string; method: "POST" | "DELETE" }) => api<void>(path, method),
@@ -273,10 +286,14 @@ function Lifecycle({ group }: { group: GroupDetail }) {
       {group.status !== "CLOSED" ? (
         <button
           className="danger"
-          onClick={() => {
-            if (confirm(`Close ${group.name}? Nobody will be able to add or change wishes.`)) {
-              act.mutate({ path: `/api/groups/${group.id}/close`, method: "POST" });
-            }
+          onClick={async () => {
+            const ok = await ask({
+              title: `Close ${group.name}?`,
+              message: "Nobody will be able to add or change wishes. Afterwards you can archive or delete the group.",
+              confirmLabel: "Close group",
+              danger: true,
+            });
+            if (ok) act.mutate({ path: `/api/groups/${group.id}/close`, method: "POST" });
           }}
         >
           Close group
@@ -286,10 +303,14 @@ function Lifecycle({ group }: { group: GroupDetail }) {
           <button onClick={() => act.mutate({ path: `/api/groups/${group.id}/archive`, method: "POST" })}>Archive group</button>
           <button
             className="danger"
-            onClick={() => {
-              if (confirm(`Delete ${group.name} and everything in it? This cannot be undone.`)) {
-                act.mutate({ path: `/api/groups/${group.id}`, method: "DELETE" });
-              }
+            onClick={async () => {
+              const ok = await ask({
+                title: `Delete ${group.name}?`,
+                message: "Every wish and comment in it goes too. This can't be undone.",
+                confirmLabel: "Delete group",
+                danger: true,
+              });
+              if (ok) act.mutate({ path: `/api/groups/${group.id}`, method: "DELETE" });
             }}
           >
             Delete group

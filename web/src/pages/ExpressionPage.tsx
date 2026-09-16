@@ -8,9 +8,11 @@ import { ErrorText, Field } from "../components/Form";
 import { PageHeader } from "../components/Layout";
 import { StatusChip } from "../components/StatusChip";
 import { formatDate, formatTime } from "../components/format";
-import { linkify } from "../components/links";
-import { LinkList, LinksInput } from "../components/LinksInput";
+import { LinkList, findLinks, withoutLinks } from "../components/links";
+import { LinkPreviewCard } from "../components/LinkPreviewCard";
+import { useSettledFirstLink } from "../components/useDebounced";
 import { prepareImage } from "../components/image";
+import { useConfirm } from "../components/ConfirmDialog";
 
 /**
  * The expression page: the wish (creator edits), taking care (implementer edits), and the
@@ -37,7 +39,7 @@ function Header({ expression: e }: { expression: ExpressionView }) {
   const group = useGroup(e.groupId);
   return (
     <PageHeader
-      title={firstLine(e.description)}
+      title={firstLine(withoutLinks(e.description) || e.description)}
       parent={{ to: `/groups/${e.groupId}`, label: group.data?.name ?? "Group" }}
       action={<StatusChip status={e.status} />}
     />
@@ -47,21 +49,20 @@ function Header({ expression: e }: { expression: ExpressionView }) {
 function WishSection({ expression: e }: { expression: ExpressionView }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const ask = useConfirm();
   const [description, setDescription] = useState(e.description);
-  const [links, setLinks] = useState<string[]>(e.links);
   const [wantedBy, setWantedBy] = useState(e.wantedBy ?? "");
   const [gotIt, setGotIt] = useState(false);
+  const links = findLinks(description);
+  const firstLink = useSettledFirstLink(description);
   useEffect(() => {
     setDescription(e.description);
-    setLinks(e.links);
     setWantedBy(e.wantedBy ?? "");
-  }, [e.description, e.links, e.wantedBy]);
-  const cleanLinks = links.map((l) => l.trim()).filter((l) => l !== "");
+  }, [e.description, e.wantedBy]);
 
   const save = useExpressionAction(e.id, () =>
     api<ExpressionView>(`/api/expressions/${e.id}/wish`, "PUT", {
       description,
-      links: cleanLinks,
       wantedBy: wantedBy || null,
       version: e.version,
     }),
@@ -87,11 +88,14 @@ function WishSection({ expression: e }: { expression: ExpressionView }) {
   }
 
   const descriptionLocked = e.status !== "EXPRESSED";
-  const changed =
-    description !== e.description ||
-    cleanLinks.join("\n") !== e.links.join("\n") ||
-    (wantedBy || null) !== e.wantedBy ||
-    gotIt;
+  const changed = description !== e.description || (wantedBy || null) !== e.wantedBy || gotIt;
+  const pictureLabel = picture.isPending
+    ? "Uploading…"
+    : !e.pictureUrl
+      ? "Add or take a picture"
+      : e.pictureFromLink
+        ? "Use my own picture"
+        : "Replace picture";
   return (
     <section className="section">
       <div className="section-head">
@@ -100,10 +104,15 @@ function WishSection({ expression: e }: { expression: ExpressionView }) {
       </div>
       <div className="wish-body">
         <div className="picture">
-          {e.pictureUrl ? <img src={e.pictureUrl} alt="" /> : <span className="muted">no picture</span>}
+          {e.pictureUrl ? (
+            <img src={e.pictureUrl} alt="" />
+          ) : (
+            <span className="picture-empty">{e.picturePending ? "Getting the picture from the link…" : "no picture"}</span>
+          )}
+          {e.pictureUrl && e.pictureFromLink && <span className="picture-source">from the link</span>}
           {e.canEditWish && (
             <label className="link file">
-              {picture.isPending ? "Uploading…" : e.pictureUrl ? "Replace picture" : "Add or take a picture"}
+              {pictureLabel}
               <input
                 type="file"
                 accept="image/*"
@@ -118,7 +127,10 @@ function WishSection({ expression: e }: { expression: ExpressionView }) {
         </div>
         {e.canEditWish ? (
           <form onSubmit={submit} className="stack grow">
-            <Field label="Description" hint={descriptionLocked ? "Locked while someone takes care of it" : undefined}>
+            <Field
+              label="Description"
+              hint={descriptionLocked ? "Locked while someone takes care of it" : "Links in the text show up below as you type."}
+            >
               <textarea
                 value={description}
                 onChange={(ev) => setDescription(ev.target.value)}
@@ -128,7 +140,15 @@ function WishSection({ expression: e }: { expression: ExpressionView }) {
                 disabled={descriptionLocked}
               />
             </Field>
-            {descriptionLocked ? <LinkList links={e.links} /> : <LinksInput links={links} onChange={setLinks} />}
+            {firstLink && !descriptionLocked && (
+              <LinkPreviewCard
+                url={firstLink}
+                onUseTitle={
+                  withoutLinks(description) === "" ? (title) => setDescription((d) => `${title}\n${d.trim()}`) : undefined
+                }
+              />
+            )}
+            <LinkList links={firstLink && !descriptionLocked ? links.filter((l) => l !== firstLink) : links} />
             <Field label="By date">
               <input type="date" value={wantedBy} onChange={(ev) => setWantedBy(ev.target.value)} />
             </Field>
@@ -148,8 +168,14 @@ function WishSection({ expression: e }: { expression: ExpressionView }) {
                 <button
                   type="button"
                   className="link danger"
-                  onClick={() => {
-                    if (confirm("Delete this wish and its comments?")) remove.mutate();
+                  onClick={async () => {
+                    const ok = await ask({
+                      title: "Delete this wish?",
+                      message: "Its comments go too. This can't be undone.",
+                      confirmLabel: "Delete",
+                      danger: true,
+                    });
+                    if (ok) remove.mutate();
                   }}
                 >
                   Delete
@@ -159,8 +185,8 @@ function WishSection({ expression: e }: { expression: ExpressionView }) {
           </form>
         ) : (
           <div className="grow">
-            <p className="prose">{linkify(e.description)}</p>
-            <LinkList links={e.links} />
+            <p className="prose">{withoutLinks(e.description)}</p>
+            <LinkList links={findLinks(e.description)} />
             {e.wantedBy && <p className="muted">Wanted by {formatDate(e.wantedBy)}</p>}
           </div>
         )}
@@ -170,6 +196,7 @@ function WishSection({ expression: e }: { expression: ExpressionView }) {
 }
 
 function CareSection({ expression: e }: { expression: ExpressionView }) {
+  const ask = useConfirm();
   const [incognitoAtClaim, setIncognitoAtClaim] = useState(false);
   const [incognito, setIncognito] = useState(e.incognito);
   const [providingBy, setProvidingBy] = useState(e.providingBy ?? "");
@@ -197,15 +224,17 @@ function CareSection({ expression: e }: { expression: ExpressionView }) {
     return (
       <section className="section">
         <h2>Taking care</h2>
-        <p className="muted">Nobody has taken care of this wish yet.</p>
-        <label className="check">
-          <input type="checkbox" checked={incognitoAtClaim} onChange={(ev) => setIncognitoAtClaim(ev.target.checked)} />
-          Incognito: hide my name from the others
-        </label>
-        <ErrorText error={takeCare.error} />
-        <button className="primary" onClick={() => takeCare.mutate(undefined)} disabled={takeCare.isPending}>
-          Take care
-        </button>
+        <div className="stack take-care">
+          <p className="muted">Nobody has taken care of this wish yet.</p>
+          <label className="check">
+            <input type="checkbox" checked={incognitoAtClaim} onChange={(ev) => setIncognitoAtClaim(ev.target.checked)} />
+            Incognito: hide my name from the others
+          </label>
+          <ErrorText error={takeCare.error} />
+          <button className="primary" onClick={() => takeCare.mutate(undefined)} disabled={takeCare.isPending}>
+            Take care
+          </button>
+        </div>
       </section>
     );
   }
@@ -247,8 +276,14 @@ function CareSection({ expression: e }: { expression: ExpressionView }) {
               <button
                 type="button"
                 className="link danger"
-                onClick={() => {
-                  if (confirm("Stop taking care of this wish? It goes back to the group.")) release.mutate(undefined);
+                onClick={async () => {
+                  const ok = await ask({
+                    title: "Stop taking care of this wish?",
+                    message: "It goes back to the group, so someone else can take it.",
+                    confirmLabel: "Release",
+                    danger: true,
+                  });
+                  if (ok) release.mutate(undefined);
                 }}
               >
                 Release

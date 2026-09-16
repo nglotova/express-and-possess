@@ -4,6 +4,7 @@ import ca.glotov.expresspossess.auth.Role;
 import ca.glotov.expresspossess.auth.User;
 import ca.glotov.expresspossess.auth.UserRepository;
 import ca.glotov.expresspossess.common.ApiException;
+import ca.glotov.expresspossess.common.Links;
 import ca.glotov.expresspossess.groups.Group;
 import ca.glotov.expresspossess.groups.GroupService;
 import ca.glotov.expresspossess.groups.MemberLeftEvent;
@@ -39,19 +40,25 @@ public class ExpressionService {
     private final GroupService groups;
     private final ApplicationEventPublisher events;
     private final Clock clock;
+    private final LinkPreviewProperties linkPreview;
+    private final LinkPreviews linkPreviews;
 
     ExpressionService(ExpressionRepository expressions,
                       CommentRepository comments,
                       UserRepository users,
                       GroupService groups,
                       ApplicationEventPublisher events,
-                      Clock clock) {
+                      Clock clock,
+                      LinkPreviewProperties linkPreview,
+                      LinkPreviews linkPreviews) {
         this.expressions = expressions;
         this.comments = comments;
         this.users = users;
         this.groups = groups;
         this.events = events;
         this.clock = clock;
+        this.linkPreview = linkPreview;
+        this.linkPreviews = linkPreviews;
     }
 
     // ---- reads ---------------------------------------------------------------------
@@ -82,49 +89,36 @@ public class ExpressionService {
 
     // ---- the creator's section -----------------------------------------------------
 
-    public ExpressionView create(Long groupId, Long creatorId, String description, List<String> links,
-                                 LocalDate wantedBy) {
+    public ExpressionView create(Long groupId, Long creatorId, String description, LocalDate wantedBy) {
         Group group = groups.activeGroupFor(groupId, creatorId);
-        Expression expression = expressions.save(
-                new Expression(group.getId(), creatorId, description.trim(), cleanLinks(links), wantedBy));
+        Expression expression = expressions.save(new Expression(group.getId(), creatorId, description.trim(), wantedBy));
+        applyKnownLinkPicture(expression);
         events.publishEvent(new ExpressionChanged(ExpressionChanged.Type.CREATED, expression.getId(), groupId, creatorId));
+        events.publishEvent(new PicturePreviewRequested(expression.getId()));
         return changed(expression.getId(), creatorId);
     }
 
     /**
-     * The creator's Save. The description and links can only change while nobody has
-     * taken care; the date can change until the wish is received. Version guards against
-     * overwriting someone else's edit.
+     * The creator's Save. The description can only change while nobody has taken care; the
+     * date can change until the wish is received. Version guards against overwriting someone
+     * else's edit. A new description may hold a different first link, so the picture taken
+     * from the link gets another look.
      */
-    public ExpressionView editWish(Long id, Long userId, String description, List<String> links,
-                                   LocalDate wantedBy, long version) {
+    public ExpressionView editWish(Long id, Long userId, String description, LocalDate wantedBy, long version) {
         Expression expression = editable(id, userId);
         requireCreator(expression, userId);
         requireVersion(expression, version);
-        List<String> cleaned = cleanLinks(links);
-        if (!expression.is(EXPRESSED)
-                && (!expression.getDescription().equals(description.trim()) || !expression.getLinks().equals(cleaned))) {
-            throw ApiException.conflict("The description and links are locked while someone takes care of this wish");
+        String text = description.trim();
+        boolean descriptionChanged = !expression.getDescription().equals(text);
+        if (!expression.is(EXPRESSED) && descriptionChanged) {
+            throw ApiException.conflict("The description is locked while someone takes care of this wish");
         }
-        expression.editWish(description.trim(), cleaned, wantedBy);
+        expression.editWish(text, wantedBy);
+        if (descriptionChanged) {
+            applyKnownLinkPicture(expression);
+            events.publishEvent(new PicturePreviewRequested(id));
+        }
         return changed(id, userId);
-    }
-
-    /** Trimmed, non-empty, web addresses only, at most ten. */
-    private static List<String> cleanLinks(List<String> links) {
-        if (links == null) {
-            return List.of();
-        }
-        List<String> cleaned = links.stream().map(String::trim).filter(l -> !l.isEmpty()).distinct().toList();
-        if (cleaned.size() > 10) {
-            throw ApiException.badRequest("At most ten links per wish");
-        }
-        for (String link : cleaned) {
-            if (!(link.startsWith("http://") || link.startsWith("https://")) || link.length() > 500) {
-                throw ApiException.badRequest("Links must start with http:// or https://");
-            }
-        }
-        return cleaned;
     }
 
     /** The creator ticks Got it. */
@@ -259,6 +253,22 @@ public class ExpressionService {
         return adminGet(id);
     }
 
+    /**
+     * When the member looked at the link while typing, its picture is already known and goes
+     * on the wish at once; otherwise the background fetch takes over after the commit.
+     */
+    private void applyKnownLinkPicture(Expression expression) {
+        if (!linkPreview.enabled()) {
+            return;
+        }
+        boolean uploadedByCreator = expression.getPictureUrl() != null && expression.getPictureLink() == null;
+        String link = Links.first(expression.getDescription());
+        if (uploadedByCreator || link == null) {
+            return;
+        }
+        linkPreviews.cached(link).ifPresent(preview -> expression.useLinkPicture(preview.pictureUrl(), link));
+    }
+
     // ---- building views ------------------------------------------------------------
 
     /**
@@ -300,11 +310,18 @@ public class ExpressionService {
         boolean creator = e.isCreator(viewer.id());
         boolean implementing = e.isImplementer(viewer.id());
 
+        String link = Links.first(e.getDescription());
+        boolean uploadedByCreator = e.getPictureUrl() != null && e.getPictureLink() == null;
+        boolean pictureFromLink = e.getPictureUrl() != null && e.getPictureLink() != null;
+        boolean picturePending = linkPreview.enabled() && link != null && !uploadedByCreator
+                && !link.equals(e.getPictureLink());
+
         return new ExpressionView(
                 e.getId(), e.getGroupId(),
                 new PersonRef(e.getCreatorId(), names.get(e.getCreatorId())),
                 implementer,
-                e.getStatus(), e.getDescription(), e.getLinks(), e.getPictureUrl(), e.getWantedBy(), e.getProvidingBy(),
+                e.getStatus(), e.getDescription(), e.getPictureUrl(), pictureFromLink, picturePending,
+                e.getWantedBy(), e.getProvidingBy(),
                 seesImplementer && e.isIncognito(),
                 e.getVersion(),
                 open && creator,

@@ -8,6 +8,9 @@ import java.util.List;
  * page uses to show or hide controls; the server enforces the same rules again on every
  * call. {@code incognito} is only reported truthfully to the implementer and to a system
  * administrator; everyone else sees false and an implementer named "Incognito".
+ *
+ * @param pictureFromLink the picture was taken from the first link in the description
+ * @param picturePending  a picture is being fetched from that link; the page asks again until it ends
  */
 public record ExpressionView(Long id,
                              Long groupId,
@@ -15,8 +18,9 @@ public record ExpressionView(Long id,
                              PersonRef implementer,
                              ExpressionStatus status,
                              String description,
-                             List<String> links,
                              String pictureUrl,
+                             boolean pictureFromLink,
+                             boolean picturePending,
                              LocalDate wantedBy,
                              LocalDate providingBy,
                              boolean incognito,

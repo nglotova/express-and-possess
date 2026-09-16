@@ -33,11 +33,10 @@ class ExpressionController {
         this.files = files;
     }
 
-    record CreateRequest(@NotBlank @Size(max = 4000) String description, List<String> links, LocalDate wantedBy) {
+    record CreateRequest(@NotBlank @Size(max = 4000) String description, LocalDate wantedBy) {
     }
 
-    record WishRequest(@NotBlank @Size(max = 4000) String description, List<String> links, LocalDate wantedBy,
-                       long version) {
+    record WishRequest(@NotBlank @Size(max = 4000) String description, LocalDate wantedBy, long version) {
     }
 
     record CareRequest(boolean incognito, LocalDate providingBy, boolean provided, long version) {
@@ -64,7 +63,7 @@ class ExpressionController {
     @ResponseStatus(HttpStatus.CREATED)
     ExpressionView create(@AuthenticationPrincipal AuthenticatedUser me, @PathVariable Long groupId,
                           @Valid @RequestBody CreateRequest body) {
-        return expressions.create(groupId, me.getId(), body.description(), body.links(), body.wantedBy());
+        return expressions.create(groupId, me.getId(), body.description(), body.wantedBy());
     }
 
     @GetMapping("/expressions/{id}")
@@ -75,7 +74,7 @@ class ExpressionController {
     @PutMapping("/expressions/{id}/wish")
     ExpressionView editWish(@AuthenticationPrincipal AuthenticatedUser me, @PathVariable Long id,
                             @Valid @RequestBody WishRequest body) {
-        return expressions.editWish(id, me.getId(), body.description(), body.links(), body.wantedBy(), body.version());
+        return expressions.editWish(id, me.getId(), body.description(), body.wantedBy(), body.version());
     }
 
     @PostMapping("/expressions/{id}/received")

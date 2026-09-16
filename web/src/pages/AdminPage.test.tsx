@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AdminPage } from "./AdminPage";
+import { ConfirmProvider } from "../components/ConfirmDialog";
 
 const users = [
   { id: 1, email: "natasha@example.com", name: "Natasha", role: "ADMIN", emailEnabled: true, enabled: true },
@@ -21,7 +22,9 @@ describe("Administration page", () => {
     render(
       <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
         <MemoryRouter>
-          <AdminPage />
+          <ConfirmProvider>
+            <AdminPage />
+          </ConfirmProvider>
         </MemoryRouter>
       </QueryClientProvider>,
     );

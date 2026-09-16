@@ -126,8 +126,16 @@ architecture diagram in the README. Still to do once the host exists: run the st
 
 ## After the plan: changes from family testing (2026-09-15)
 
-- Product links are a separate field on a wish (one or more), not text inside the
-  description, so they are always clickable. Spec section 9 changes accordingly; migration V2.
+- Product links: first tried as a separate field (migration V2), then moved back into the
+  description at Natasha's request (migration V3). The page finds every web address in the
+  text and shows each as its own link under it, updating as the text changes.
+- When the creator adds no picture, the server takes one from the first link: Open Graph or
+  Twitter preview tags, schema.org product data, or Amazon's main product image. Shops that
+  refuse automated requests give no picture; on 2026-09-15 that was Sephora and Bershka.
+- While a link is typed, a preview card shows the product picture, name, and shop, as a
+  messenger does. Previews are cached for an hour (Spring Cache with Caffeine), so the saved
+  wish gets its picture immediately. A button puts the product name into a link-only description.
+- Colours moved to turquoise shades; buttons are pill-shaped and cards more rounded.
 - Opening an invitation link as the invited person accepts it without a further click.
 - The edit buttons on the wish page read Save and stay disabled until something changed.
 - An invitation opened while logged in as someone else explains it and offers Log out.
@@ -136,7 +144,5 @@ architecture diagram in the README. Still to do once the host exists: run the st
 - A picture can be added on the New wish page. Photos are shrunk to 1600 px and converted to
   JPEG in the browser before upload, so large phone photos and iPhone HEIC files go through.
 
-Open: the site is not reachable from a phone on the same Wi-Fi with `npm run dev -- --host`.
-Not yet diagnosed. Likely causes to check first: the dev server not started with `--host`,
-the macOS firewall blocking incoming connections to node, or the phone on a guest or
-isolated Wi-Fi network.
+Phone access (resolved 2026-09-16): the dev server listened only on localhost. `vite.config.ts`
+now sets `server.host: true`, so a phone on the same Wi-Fi opens http://<Mac's address>:5173.

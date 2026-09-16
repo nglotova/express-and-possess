@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -24,6 +25,27 @@ public interface ExpressionRepository extends JpaRepository<Expression, Long> {
             + "and e.status = ca.glotov.expresspossess.expressions.ExpressionStatus.EXPRESSED")
     int claim(@Param("id") Long id, @Param("userId") Long userId, @Param("incognito") boolean incognito,
               @Param("now") Instant now);
+
+    /**
+     * Stores the picture taken from a link. Leaves the version alone, and changes nothing if
+     * the creator uploaded a picture meanwhile or the link has left the description.
+     */
+    @Modifying
+    @Transactional
+    @Query("update Expression e set e.pictureUrl = :url, e.pictureLink = :link "
+            + "where e.id = :id and (e.pictureUrl is null or e.pictureLink is not null) "
+            + "and locate(:link, e.description) > 0")
+    int setLinkPicture(@Param("id") Long id, @Param("url") String url, @Param("link") String link);
+
+    @Modifying
+    @Transactional
+    @Query("update Expression e set e.pictureUrl = null, e.pictureLink = null "
+            + "where e.id = :id and e.pictureLink is not null")
+    int clearLinkPicture(@Param("id") Long id);
+
+    @Query("select e.id from Expression e where e.pictureUrl is null and e.pictureLink is null "
+            + "and (e.description like '%http://%' or e.description like '%https://%')")
+    List<Long> findIdsWaitingForLinkPicture();
 
     List<Expression> findByGroupIdOrderByCreatedAtDesc(Long groupId);
 

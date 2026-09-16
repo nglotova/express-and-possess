@@ -65,8 +65,9 @@ export interface ExpressionView {
   implementer: PersonRef | null;
   status: ExpressionStatus;
   description: string;
-  links: string[];
   pictureUrl: string | null;
+  pictureFromLink: boolean;
+  picturePending: boolean;
   wantedBy: string | null;
   providingBy: string | null;
   incognito: boolean;
@@ -79,6 +80,14 @@ export interface ExpressionView {
   canMarkReceived: boolean;
   commentsOpen: boolean;
   comments: CommentView[];
+}
+
+/** A shop link as the preview card shows it. */
+export interface LinkPreview {
+  url: string;
+  site: string;
+  title: string | null;
+  pictureUrl: string | null;
 }
 
 export interface ActivityView {

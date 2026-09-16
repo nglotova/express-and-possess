@@ -5,6 +5,7 @@ import type { ExpressionStatus, ExpressionView, MemberView, Role, User } from ".
 import { ErrorText } from "../components/Form";
 import { PageHeader } from "../components/Layout";
 import { StatusChip } from "../components/StatusChip";
+import { useConfirm } from "../components/ConfirmDialog";
 
 interface AdminGroupRow {
   id: number;
@@ -88,6 +89,7 @@ function Users() {
 
 function Groups() {
   const queryClient = useQueryClient();
+  const ask = useConfirm();
   const groups = useQuery({ queryKey: ["admin", "groups"], queryFn: () => api<AdminGroupRow[]>("/api/admin/groups") });
   const [open, setOpen] = useState<number | null>(null);
   const act = useMutation({
@@ -116,8 +118,14 @@ function Groups() {
                 )}
                 <button
                   className="link danger"
-                  onClick={() => {
-                    if (confirm(`Delete ${g.name} and everything in it?`)) act.mutate({ path: `/api/admin/groups/${g.id}`, method: "DELETE" });
+                  onClick={async () => {
+                    const ok = await ask({
+                      title: `Delete ${g.name}?`,
+                      message: "Every wish and comment in it goes too. This can't be undone.",
+                      confirmLabel: "Delete group",
+                      danger: true,
+                    });
+                    if (ok) act.mutate({ path: `/api/admin/groups/${g.id}`, method: "DELETE" });
                   }}
                 >
                   Delete
