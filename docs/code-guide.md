@@ -8,10 +8,10 @@ are in the specification, [spec-v3.html](spec-v3.html).
 
 ## 1. The parts
 
-| Folder | What it is | Written in | Where it runs on your Mac |
+| Folder | What it is | Written in | Where it runs locally |
 |---|---|---|---|
 | [`web`](../web) | The website people see: every page and button | TypeScript, React | Vite, on port 5173 |
-| [`api`](../api) | The server: logins, groups, wishes, comments, the bell, and all the rules | Java, Spring Boot | IntelliJ, on port 8080 |
+| [`api`](../api) | The server: logins, groups, wishes, comments, the bell, and all the rules | Java, Spring Boot | Maven or the IDE, on port 8080 |
 | [`notifier`](../notifier) | Sends notification emails | Kotlin, Spring Boot | Optional; `mvn -pl notifier spring-boot:run` |
 | [`docker-compose.yml`](../docker-compose.yml) | The helpers the server needs: the PostgreSQL database, Kafka, and Mailpit | | Docker Desktop |
 | [`deploy`](../deploy), [`Dockerfile`](../Dockerfile), [`web/Dockerfile`](../web/Dockerfile) | Running the whole thing on a real server | | Not used locally; see [deploy.md](deploy.md) |
@@ -27,7 +27,7 @@ What each helper in Docker is for:
 
 ## 2. One click, start to finish
 
-Following one action through every layer shows how the parts fit. Here Papa presses **Take care** on
+Following one action through every layer shows how the parts fit. Here Papa presses **I’ll take care of it** on
 Mama's wish.
 
 ```mermaid
@@ -161,7 +161,7 @@ Each move between them is one method in `ExpressionService`:
 |---|---|---|---|
 | Write a wish | Expressed | Any member | `create` |
 | Change the description or date | Expressed | The creator | `editWish` |
-| Take care (optionally Incognito) | In Process | Anyone but the creator | `takeCare` |
+| Take care of it (optionally Incognito) | In Process | Anyone but the creator | `takeCare` |
 | Change Incognito or the providing date | In Process | The helper | `editCare` |
 | Release | Expressed | The helper | `release` |
 | Mark provided | Provided | The helper | `editCare` with provided |
@@ -174,7 +174,7 @@ The pages involved:
 - [`ActivityPage.tsx`](../web/src/pages/ActivityPage.tsx): a group's page with its three lists of
   wishes. The rows are drawn by [`ExpressionRow.tsx`](../web/src/components/ExpressionRow.tsx).
 - [`NewExpressionPage.tsx`](../web/src/pages/NewExpressionPage.tsx): writing a wish.
-- [`ExpressionPage.tsx`](../web/src/pages/ExpressionPage.tsx): one wish, with editing, Take care,
+- [`ExpressionPage.tsx`](../web/src/pages/ExpressionPage.tsx): one wish, with editing, taking care,
   Release, Provided, Received, Delete and comments.
 - [`ConfirmDialog.tsx`](../web/src/components/ConfirmDialog.tsx): the "Are you sure?" box used before
   deleting, releasing, removing or closing.
@@ -295,7 +295,7 @@ Everything is under [`web/src`](../web/src).
 
 Tests worth reading first:
 
-- `TakeCareConcurrencyTest`: twenty people press Take care at once, and exactly one wins.
+- `TakeCareConcurrencyTest`: twenty people take care of one wish at once, and exactly one wins.
 - `IncognitoTest`: a hidden helper's name never reaches anyone else.
 - `ExpressionLifecycleTest`: a wish through every stage.
 - `OutboxPublisherTest`: a taken wish becomes a Kafka message addressed to the right people.

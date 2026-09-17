@@ -1,4 +1,5 @@
 import { Field } from "./Form";
+import { PasswordInput } from "./PasswordInput";
 
 /** The same rule the server checks when a password is set. */
 const RULES: { label: string; passes: (password: string) => boolean }[] = [
@@ -32,14 +33,7 @@ export function NewPasswordFields({
   return (
     <>
       <Field label={label}>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => onPassword(e.target.value)}
-          autoComplete="new-password"
-          aria-describedby="password-rules"
-          required
-        />
+        <PasswordInput value={password} onChange={onPassword} autoComplete="new-password" describedBy="password-rules" />
       </Field>
       <ul id="password-rules" className="password-rules">
         {RULES.map((r) => {
@@ -53,7 +47,7 @@ export function NewPasswordFields({
         })}
       </ul>
       <Field label="Repeat password">
-        <input type="password" value={repeat} onChange={(e) => onRepeat(e.target.value)} autoComplete="new-password" required />
+        <PasswordInput value={repeat} onChange={onRepeat} autoComplete="new-password" />
       </Field>
     </>
   );

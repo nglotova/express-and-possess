@@ -96,9 +96,9 @@ describe("Expression page", () => {
     await waitFor(() => expect(deleteRequests()).toBe(1));
   });
 
-  it("offers Take Care with the incognito choice to a member who is not the creator", async () => {
+  it("offers to take care, with the incognito choice, to a member who is not the creator", async () => {
     renderWith(base);
-    expect(await screen.findByRole("button", { name: "Take care" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "I'll take care of it" })).toBeInTheDocument();
     expect(screen.getByLabelText(/Incognito/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "↗ example.com" })).toHaveAttribute("href", "https://example.com/case");
     expect(screen.getByRole("link", { name: "↗ example.com" })).toHaveAttribute("target", "_blank");

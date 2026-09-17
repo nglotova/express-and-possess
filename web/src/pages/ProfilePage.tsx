@@ -7,6 +7,7 @@ import type { User } from "../api/types";
 import { ErrorText, Field } from "../components/Form";
 import { PageHeader } from "../components/Layout";
 import { NewPasswordFields, newPasswordProblem } from "../components/NewPassword";
+import { PasswordInput } from "../components/PasswordInput";
 
 export function ProfilePage() {
   const me = useMe();
@@ -72,7 +73,7 @@ export function ProfilePage() {
           className="stack"
         >
           <Field label="Current password">
-            <input type="password" value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" required />
+            <PasswordInput value={current} onChange={setCurrent} autoComplete="current-password" />
           </Field>
           <NewPasswordFields label="New password" password={next} repeat={repeat} onPassword={setNext} onRepeat={setRepeat} />
           {problem && (

@@ -155,13 +155,13 @@ function WishSection({ expression: e }: { expression: ExpressionView }) {
             {e.canMarkReceived && (
               <label className="check">
                 <input type="checkbox" checked={gotIt} onChange={(ev) => setGotIt(ev.target.checked)} />
-                Got it
+                Received with thanks
               </label>
             )}
             <ErrorText error={save.error ?? received.error ?? picture.error ?? remove.error} />
             <div className="button-row">
               <button type="submit" className="primary" disabled={!changed || save.isPending || received.isPending}>
-                {gotIt ? "Confirm: got it" : "Save"}
+                {gotIt ? "Confirm: received" : "Save"}
               </button>
               {save.isSuccess && !changed && <span className="muted">Saved.</span>}
               {e.canDelete && (
@@ -232,7 +232,7 @@ function CareSection({ expression: e }: { expression: ExpressionView }) {
           </label>
           <ErrorText error={takeCare.error} />
           <button className="primary" onClick={() => takeCare.mutate(undefined)} disabled={takeCare.isPending}>
-            Take care
+            I'll take care of it
           </button>
         </div>
       </section>

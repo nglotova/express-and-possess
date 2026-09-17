@@ -32,7 +32,7 @@ so they are written in the same transaction too.
 
 ## The one race worth reading
 
-Two members can press Take Care on the same wish at the same moment. The claim is one
+Two members can press “I’ll take care of it” on the same wish at the same moment. The claim is one
 conditional update, `UPDATE ... WHERE implementer_id IS NULL AND status = 'EXPRESSED'`, so
 the database changes a row for exactly one of them; the other gets zero rows and a 409.
 No locks, no retries. `TakeCareConcurrencyTest` fires twenty members at once and asserts

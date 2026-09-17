@@ -457,6 +457,30 @@ a.thumb {
   color: var(--ink-3);
 }
 
+.password-box {
+  position: relative;
+  display: block;
+}
+
+.password-box input {
+  padding-right: 2.6rem;
+}
+
+.password-box .reveal {
+  position: absolute;
+  top: 50%;
+  right: 0.3rem;
+  transform: translateY(-50%);
+  padding: 0.25rem 0.4rem;
+  min-height: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
 .password-rules {
   list-style: none;
   margin: -0.5rem 0 0;

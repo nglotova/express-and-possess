@@ -5,6 +5,7 @@ import { api } from "../api/client";
 import { useMe } from "../api/queries";
 import type { User } from "../api/types";
 import { ErrorText, Field } from "../components/Form";
+import { PasswordInput } from "../components/PasswordInput";
 
 export function LoginPage() {
   const me = useMe();
@@ -53,13 +54,7 @@ export function LoginPage() {
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
         </Field>
         <Field label="Password">
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-            required
-          />
+          <PasswordInput value={password} onChange={setPassword} autoComplete="current-password" />
         </Field>
         <ErrorText error={login.error} />
         <button type="submit" className="primary" disabled={login.isPending}>

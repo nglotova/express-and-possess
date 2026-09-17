@@ -1,8 +1,7 @@
 # Build plan
 
-Source of truth for scope: `Express & Possess - spec v3 draft.html` in `~/Natasha Work Search`
-(a copy lives in `docs/spec-v3.html`). This file says in what order the spec gets built and
-where each piece stops so it can be reviewed.
+Source of truth for scope: the specification, `docs/spec-v3.html`. This file says in what
+order I build it and where each piece stops so it can be reviewed.
 
 ## Shape of the repository
 
@@ -28,13 +27,13 @@ the other domain's service.
 
 - Java 21 language level (`maven.compiler.release=21`), built with whatever JDK 21+ is
   installed. Kotlin only in `notifier`.
-- Maven, one parent POM. Maven is on the résumé and already installed.
+- Maven, one parent POM.
 - PostgreSQL only, no H2. Tests run against a real PostgreSQL in Testcontainers.
 - Flyway migrations are the schema. JPA never creates or alters tables.
 - Every status transition is a method on the expression service with a test. The
   transition table in the spec is the test list.
-- Commits happen when Natasha says so, at the end of each milestone, in her name.
-- No code is written that the spec does not ask for.
+- One commit per milestone.
+- I write no code the spec does not ask for.
 
 ## Milestones
 
@@ -111,23 +110,23 @@ Forcing a status back to Expressed clears the implementer; any other status need
 
 Seed data with a fictional family, "Log in as Alice / Bob / Carol" buttons on the demo
 build, nightly reset job, Compose file for a small server, README with architecture diagram
-and a 30-second GIF. Résumé line updated to link the demo.
+and a 30-second GIF.
 Built 2026-09-14 except for the parts that need a server: demo mode (seed, "log in as",
 nightly reset) with its own test context; Dockerfiles for api, notifier and web; the
 production Compose stack that runs twice behind Caddy (`deploy/`); `docs/deploy.md`;
 architecture diagram in the README. Still to do once the host exists: run the steps in
-`docs/deploy.md`, record the GIF, put the real URL into `docs/resume-line.md` and the résumé.
+`docs/deploy.md` and record the GIF.
 
-## What is needed from Natasha
+## What I have to provide
 
 - Docker Desktop running whenever tests run (Testcontainers needs it).
 - A decision on hosting before M7 (a small VPS is assumed).
-- A GitHub repository name when the code is ready to push.
+- A GitHub repository when the code is ready to push.
 
 ## After the plan: changes from family testing (2026-09-15)
 
 - Product links: first tried as a separate field (migration V2), then moved back into the
-  description at Natasha's request (migration V3). The page finds every web address in the
+  description after my family tried it (migration V3). The page finds every web address in the
   text and shows each as its own link under it, updating as the text changes.
 - When the creator adds no picture, the server takes one from the first link: Open Graph or
   Twitter preview tags, schema.org product data, or Amazon's main product image. Shops that
