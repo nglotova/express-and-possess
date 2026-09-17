@@ -34,7 +34,7 @@ class AccountsTest {
 
         MvcResult result = mvc.perform(post("/api/auth/register").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(registerJson(email, "correct horse battery", "Natasha")))
+                        .content(registerJson(email, "Correct-horse-battery-1", "Natasha")))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.email").value(email))
                 .andExpect(jsonPath("$.name").value("Natasha"))
@@ -49,11 +49,11 @@ class AccountsTest {
     @Test
     void anEmailCanOnlyRegisterOnce() throws Exception {
         String email = unique("twice");
-        register(email, "correct horse battery");
+        register(email, "Correct-horse-battery-1");
 
         mvc.perform(post("/api/auth/register").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(registerJson(email.toUpperCase(), "another password", "Again")))
+                        .content(registerJson(email.toUpperCase(), "Another-password-2", "Again")))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("An account with this email already exists"));
     }
@@ -67,9 +67,32 @@ class AccountsTest {
     }
 
     @Test
+    void aNewPasswordNeedsLengthACapitalANumberAndASymbol() throws Exception {
+        mvc.perform(post("/api/auth/register").with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registerJson(unique("weak"), "longenough", "Weak")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail")
+                        .value("The password needs a capital letter, a number, a special symbol."));
+
+        String email = unique("strong");
+        MockHttpSession session = register(email, "Correct-horse-battery-1");
+        mvc.perform(put("/api/me/password").with(csrf()).session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"Correct-horse-battery-1\",\"newPassword\":\"Only letters 12\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("The password needs a special symbol."));
+
+        mvc.perform(post("/api/auth/login").with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson(email, "Correct-horse-battery-1")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void loginRequiresTheRightPassword() throws Exception {
         String email = unique("login");
-        register(email, "correct horse battery");
+        register(email, "Correct-horse-battery-1");
 
         mvc.perform(post("/api/auth/login").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -78,14 +101,14 @@ class AccountsTest {
 
         mvc.perform(post("/api/auth/login").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(loginJson(email, "correct horse battery")))
+                        .content(loginJson(email, "Correct-horse-battery-1")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value(email));
     }
 
     @Test
     void logoutEndsTheSession() throws Exception {
-        MockHttpSession session = register(unique("logout"), "correct horse battery");
+        MockHttpSession session = register(unique("logout"), "Correct-horse-battery-1");
 
         mvc.perform(post("/api/auth/logout").with(csrf()).session(session))
                 .andExpect(status().isNoContent());
@@ -102,7 +125,7 @@ class AccountsTest {
 
     @Test
     void aMemberCanChangeTheirNameAndEmailPreference() throws Exception {
-        MockHttpSession session = register(unique("profile"), "correct horse battery");
+        MockHttpSession session = register(unique("profile"), "Correct-horse-battery-1");
 
         mvc.perform(put("/api/me").with(csrf()).session(session)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -115,27 +138,27 @@ class AccountsTest {
     @Test
     void changingThePasswordNeedsTheCurrentOne() throws Exception {
         String email = unique("password");
-        MockHttpSession session = register(email, "correct horse battery");
+        MockHttpSession session = register(email, "Correct-horse-battery-1");
 
         mvc.perform(put("/api/me/password").with(csrf()).session(session)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"currentPassword\":\"nope\",\"newPassword\":\"new long password\"}"))
+                        .content("{\"currentPassword\":\"nope\",\"newPassword\":\"New-long-password-2\"}"))
                 .andExpect(status().isBadRequest());
 
         mvc.perform(put("/api/me/password").with(csrf()).session(session)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"currentPassword\":\"correct horse battery\",\"newPassword\":\"new long password\"}"))
+                        .content("{\"currentPassword\":\"Correct-horse-battery-1\",\"newPassword\":\"New-long-password-2\"}"))
                 .andExpect(status().isNoContent());
 
         mvc.perform(post("/api/auth/login").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(loginJson(email, "new long password")))
+                        .content(loginJson(email, "New-long-password-2")))
                 .andExpect(status().isOk());
     }
 
     @Test
     void stateChangingRequestsNeedTheCsrfToken() throws Exception {
-        MockHttpSession session = register(unique("csrf"), "correct horse battery");
+        MockHttpSession session = register(unique("csrf"), "Correct-horse-battery-1");
 
         mvc.perform(put("/api/me").session(session)
                         .contentType(MediaType.APPLICATION_JSON)

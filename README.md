@@ -4,6 +4,7 @@ Wish lists for a group. Members write down what they want; other members take ca
 Built for one family, published as a portfolio project.
 
 Specification: [docs/spec-v3.html](docs/spec-v3.html). Build order: [docs/plan.md](docs/plan.md).
+Which file does what: [docs/code-guide.md](docs/code-guide.md).
 
 ![Architecture](docs/architecture.svg)
 

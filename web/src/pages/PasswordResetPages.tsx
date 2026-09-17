@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "../api/client";
 import { ErrorText, Field } from "../components/Form";
+import { NewPasswordFields, newPasswordProblem } from "../components/NewPassword";
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -42,13 +43,17 @@ export function ResetPasswordPage() {
   const [params] = useSearchParams();
   const token = params.get("token") ?? "";
   const [password, setPassword] = useState("");
+  const [repeat, setRepeat] = useState("");
+  const [problem, setProblem] = useState<string | null>(null);
   const confirm = useMutation({
     mutationFn: () => api<void>("/api/auth/password-reset/confirm", "POST", { token, newPassword: password }),
   });
 
   function submit(e: FormEvent) {
     e.preventDefault();
-    confirm.mutate();
+    const found = newPasswordProblem(password, repeat);
+    setProblem(found);
+    if (!found) confirm.mutate();
   }
 
   return (
@@ -60,16 +65,12 @@ export function ResetPasswordPage() {
         </p>
       ) : (
         <form onSubmit={submit} className="stack">
-          <Field label="New password" hint="At least 8 characters">
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-              minLength={8}
-              required
-            />
-          </Field>
+          <NewPasswordFields label="New password" password={password} repeat={repeat} onPassword={setPassword} onRepeat={setRepeat} />
+          {problem && (
+            <p className="error" role="alert">
+              {problem}
+            </p>
+          )}
           <ErrorText error={confirm.error} />
           <button type="submit" className="primary" disabled={confirm.isPending || !token}>
             Save password

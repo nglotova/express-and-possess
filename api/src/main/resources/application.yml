@@ -47,7 +47,7 @@ app:
   demo:
     enabled: ${APP_DEMO_ENABLED:false}
     reset-cron: "0 0 3 * * *"
-    password: demo-password
+    password: Demo-pass1
 
 server:
   port: 8080

@@ -6,6 +6,7 @@ import { useLogout, useMe } from "../api/queries";
 import type { User } from "../api/types";
 import { ErrorText, Field } from "../components/Form";
 import { PageHeader } from "../components/Layout";
+import { NewPasswordFields, newPasswordProblem } from "../components/NewPassword";
 
 export function ProfilePage() {
   const me = useMe();
@@ -17,6 +18,8 @@ export function ProfilePage() {
   const [emailEnabled, setEmailEnabled] = useState(user.emailEnabled);
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
+  const [repeat, setRepeat] = useState("");
+  const [problem, setProblem] = useState<string | null>(null);
 
   const save = useMutation({
     mutationFn: () => api<User>("/api/me", "PUT", { name, emailEnabled }),
@@ -27,6 +30,7 @@ export function ProfilePage() {
     onSuccess: () => {
       setCurrent("");
       setNext("");
+      setRepeat("");
     },
   });
 
@@ -61,16 +65,21 @@ export function ProfilePage() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            password.mutate();
+            const found = newPasswordProblem(next, repeat);
+            setProblem(found);
+            if (!found) password.mutate();
           }}
           className="stack"
         >
           <Field label="Current password">
             <input type="password" value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" required />
           </Field>
-          <Field label="New password" hint="At least 8 characters">
-            <input type="password" value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" minLength={8} required />
-          </Field>
+          <NewPasswordFields label="New password" password={next} repeat={repeat} onPassword={setNext} onRepeat={setRepeat} />
+          {problem && (
+            <p className="error" role="alert">
+              {problem}
+            </p>
+          )}
           <ErrorText error={password.error} />
           <button type="submit" disabled={password.isPending}>
             Change password

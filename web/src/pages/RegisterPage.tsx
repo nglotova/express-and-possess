@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
 import type { User } from "../api/types";
 import { ErrorText, Field } from "../components/Form";
+import { NewPasswordFields, newPasswordProblem } from "../components/NewPassword";
 
 /**
  * Registration. An invitation link arrives here with the email filled in and a `next`
@@ -18,7 +19,7 @@ export function RegisterPage() {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [repeat, setRepeat] = useState("");
-  const [mismatch, setMismatch] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
 
   const register = useMutation({
     mutationFn: () => api<User>("/api/auth/register", "POST", { email, password, name }),
@@ -30,12 +31,9 @@ export function RegisterPage() {
 
   function submit(e: FormEvent) {
     e.preventDefault();
-    if (password !== repeat) {
-      setMismatch(true);
-      return;
-    }
-    setMismatch(false);
-    register.mutate();
+    const found = newPasswordProblem(password, repeat);
+    setProblem(found);
+    if (!found) register.mutate();
   }
 
   return (
@@ -48,22 +46,10 @@ export function RegisterPage() {
         <Field label="Name" hint="First and last name, or a nickname your group knows you by">
           <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required maxLength={100} />
         </Field>
-        <Field label="Password" hint="At least 8 characters">
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="new-password"
-            minLength={8}
-            required
-          />
-        </Field>
-        <Field label="Repeat password">
-          <input type="password" value={repeat} onChange={(e) => setRepeat(e.target.value)} autoComplete="new-password" required />
-        </Field>
-        {mismatch && (
+        <NewPasswordFields label="Password" password={password} repeat={repeat} onPassword={setPassword} onRepeat={setRepeat} />
+        {problem && (
           <p className="error" role="alert">
-            The two passwords differ.
+            {problem}
           </p>
         )}
         <ErrorText error={register.error} />

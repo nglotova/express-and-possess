@@ -44,7 +44,7 @@ class AdminTest extends ApiTest {
         // A disabled account can no longer log in.
         mvc.perform(post("/api/auth/login").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json.writeValueAsString(Map.of("email", lev.email(), "password", "correct horse battery"))))
+                        .content(json.writeValueAsString(Map.of("email", lev.email(), "password", "Correct-horse-battery-1"))))
                 .andExpect(status().isUnauthorized());
 
         putAs(admin, "/api/admin/users/" + mila.id(), Map.of("enabled", true, "role", "ADMIN"))

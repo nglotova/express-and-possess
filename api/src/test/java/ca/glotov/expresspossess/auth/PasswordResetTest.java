@@ -50,35 +50,35 @@ class PasswordResetTest {
     @Test
     void theEmailedLinkResetsThePasswordOnce() throws Exception {
         String email = unique("reset");
-        register(email, "old password here");
+        register(email, "Old-password-here-1");
 
         requestReset(email);
         String token = tokenFromEmail(email);
 
-        confirmReset(token, "brand new password").andExpect(status().isNoContent());
+        confirmReset(token, "Brand-new-password-2").andExpect(status().isNoContent());
 
         mvc.perform(post("/api/auth/login").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(loginJson(email, "old password here")))
+                        .content(loginJson(email, "Old-password-here-1")))
                 .andExpect(status().isUnauthorized());
         mvc.perform(post("/api/auth/login").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(loginJson(email, "brand new password")))
+                        .content(loginJson(email, "Brand-new-password-2")))
                 .andExpect(status().isOk());
 
-        confirmReset(token, "third password").andExpect(status().isBadRequest());
+        confirmReset(token, "Third-password-3").andExpect(status().isBadRequest());
     }
 
     @Test
     void anExpiredLinkIsRefused() throws Exception {
         String email = unique("expired");
-        register(email, "old password here");
+        register(email, "Old-password-here-1");
 
         requestReset(email);
         String token = tokenFromEmail(email);
         clock.advance(Duration.ofHours(2));
 
-        confirmReset(token, "brand new password").andExpect(status().isBadRequest());
+        confirmReset(token, "Brand-new-password-2").andExpect(status().isBadRequest());
     }
 
     @Test

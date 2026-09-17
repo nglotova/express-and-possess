@@ -153,7 +153,7 @@ class InvitationsTest extends ApiTest {
         MvcResult result = mvc.perform(post("/api/auth/register").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsString(Map.of(
-                                "email", email, "password", "correct horse battery", "name", name))))
+                                "email", email, "password", "Correct-horse-battery-1", "name", name))))
                 .andExpect(status().isCreated())
                 .andReturn();
         return (MockHttpSession) result.getRequest().getSession(false);

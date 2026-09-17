@@ -42,6 +42,7 @@ public class AccountService {
         if (users.existsByEmailIgnoreCase(emailAddress)) {
             throw ApiException.conflict("An account with this email already exists");
         }
+        PasswordRule.require(password);
         User user = new User(emailAddress.trim(), passwordEncoder.encode(password), name.trim());
         if (properties.adminEmails().stream().anyMatch(a -> a.trim().equalsIgnoreCase(user.getEmail()))) {
             user.setRole(Role.ADMIN);
@@ -97,6 +98,7 @@ public class AccountService {
         if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
             throw ApiException.badRequest("Current password is wrong");
         }
+        PasswordRule.require(newPassword);
         user.setPasswordHash(passwordEncoder.encode(newPassword));
     }
 
@@ -120,6 +122,7 @@ public class AccountService {
     }
 
     public void confirmPasswordReset(String token, String newPassword) {
+        PasswordRule.require(newPassword);
         Instant now = clock.instant();
         PasswordResetToken reset = resetTokens.findByTokenHash(Tokens.hash(token))
                 .filter(t -> t.isUsable(now))
