@@ -75,11 +75,18 @@ are.
 The main site sends invitations, password resets and notifications. The free plan allows 300 emails
 a day.
 
+The emails come from `no-reply@notify.glotov.ca`, a subdomain used only by this site. Anyone can
+register and send invitations, and if someone misused that, mail services would grow suspicious of
+the sending domain. A subdomain of its own keeps that apart from the mailboxes at `glotov.ca`. The
+administration page also limits how many invitation emails one member can send a day (20 to start
+with; site administrators have no limit).
+
 1. Create a Brevo account.
-2. Senders, Domains and Dedicated IPs, Domains, Add a domain: `glotov.ca`. Brevo lists a few TXT
-   and CNAME records; add each one in GoDaddy's DNS page as in step 2, then press Verify in Brevo.
-   If GoDaddy already has a TXT record starting with `v=spf1`, or a record named `_dmarc`, edit the
-   existing one rather than adding a second: a domain may have only one of each.
+2. Senders, Domains and Dedicated IPs, Domains, Add a domain: `notify.glotov.ca`. Brevo lists a few
+   TXT and CNAME records; add each one in GoDaddy's DNS page as in step 2, then press Verify in
+   Brevo. GoDaddy asks only for the part of each name before `glotov.ca`: a record Brevo names
+   `something.notify.glotov.ca` is entered as `something.notify`. Each name should contain `notify`;
+   the existing records for the mailboxes at `glotov.ca` stay as they are.
 3. SMTP and API, SMTP tab: note the SMTP login and generate an SMTP key. They go into `main.env` in
    the next step.
 

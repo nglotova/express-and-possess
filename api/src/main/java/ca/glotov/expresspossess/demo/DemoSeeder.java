@@ -108,7 +108,7 @@ public class DemoSeeder {
         expressions.comment(kindle.id(), bob.getId(), "Does it have to be blue?");
         expressions.comment(kindle.id(), alice.getId(), "Any dark colour is fine, thank you!");
 
-        // Bob's wish, Carol has provided it: waiting for Bob's "Got it".
+        // Bob's wish, Carol has provided it: waiting for Bob's "Received with thanks".
         ExpressionView pump = expressions.create(g, bob.getId(), "Bicycle pump with a pressure gauge", null);
         ExpressionView taken = expressions.takeCare(pump.id(), carol.getId(), false);
         expressions.editCare(pump.id(), carol.getId(), false, LocalDate.now().plusDays(3), true, taken.version());

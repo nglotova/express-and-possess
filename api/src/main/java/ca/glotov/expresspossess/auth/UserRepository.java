@@ -14,6 +14,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmailIgnoreCase(String email);
 
+    List<User> findByRoleAndEnabledTrue(Role role);
+
     @Query("select u from User u where lower(u.email) like lower(concat('%', :q, '%')) "
             + "or lower(u.name) like lower(concat('%', :q, '%')) order by u.name")
     List<User> search(@Param("q") String q);

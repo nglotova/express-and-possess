@@ -1,15 +1,16 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import { useUnreadCount } from "../api/queries";
 import type { User } from "../api/types";
 
 /**
  * The header on every logged-in page: app name, the bell with its unread count, and the
- * member's name leading to the profile. Pages put their one parent link in the
+ * member's name leading to the profile. The footer has Contact us. Pages put their one parent link in the
  * PageHeader below; the browser's back gesture does the rest.
  */
 export function Layout({ me, children }: { me: User; children: ReactNode }) {
   const unread = useUnreadCount();
+  const location = useLocation();
   const count = unread.data?.unread ?? 0;
   return (
     <>
@@ -33,6 +34,13 @@ export function Layout({ me, children }: { me: User; children: ReactNode }) {
         </nav>
       </header>
       <main className="page">{children}</main>
+      {location.pathname !== "/contact" && (
+        <footer className="footer">
+          <Link to="/contact" state={{ from: location.pathname }}>
+            Contact us
+          </Link>
+        </footer>
+      )}
     </>
   );
 }

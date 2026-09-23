@@ -4,6 +4,8 @@ import ca.glotov.expresspossess.auth.AccountService;
 import ca.glotov.expresspossess.auth.AuthenticatedUser;
 import ca.glotov.expresspossess.auth.Role;
 import ca.glotov.expresspossess.auth.UserResponse;
+import ca.glotov.expresspossess.contact.ContactMessageView;
+import ca.glotov.expresspossess.contact.ContactService;
 import ca.glotov.expresspossess.expressions.ExpressionService;
 import ca.glotov.expresspossess.expressions.ExpressionStatus;
 import ca.glotov.expresspossess.expressions.ExpressionView;
@@ -11,7 +13,10 @@ import ca.glotov.expresspossess.groups.Group;
 import ca.glotov.expresspossess.groups.GroupService;
 import ca.glotov.expresspossess.groups.GroupStatus;
 import ca.glotov.expresspossess.groups.MemberView;
+import ca.glotov.expresspossess.settings.SiteSettingsService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -42,11 +47,16 @@ class AdminController {
     private final AccountService accounts;
     private final GroupService groups;
     private final ExpressionService expressions;
+    private final SiteSettingsService settings;
+    private final ContactService contact;
 
-    AdminController(AccountService accounts, GroupService groups, ExpressionService expressions) {
+    AdminController(AccountService accounts, GroupService groups, ExpressionService expressions,
+                    SiteSettingsService settings, ContactService contact) {
         this.accounts = accounts;
         this.groups = groups;
         this.expressions = expressions;
+        this.settings = settings;
+        this.contact = contact;
     }
 
     // ---- users ---------------------------------------------------------------------
@@ -110,5 +120,28 @@ class AdminController {
     ExpressionView forceStatus(@AuthenticationPrincipal AuthenticatedUser me, @PathVariable Long id,
                                @Valid @RequestBody ForceStatus body) {
         return expressions.forceStatus(id, me.getId(), body.status(), body.reason());
+    }
+
+    // ---- site settings -------------------------------------------------------------
+
+    record Settings(@NotNull @Min(1) @Max(1000) Integer invitationsPerDay) {
+    }
+
+    @GetMapping("/settings")
+    Settings siteSettings() {
+        return new Settings(settings.invitationsPerDay());
+    }
+
+    @PutMapping("/settings")
+    Settings updateSiteSettings(@Valid @RequestBody Settings body) {
+        settings.setInvitationsPerDay(body.invitationsPerDay());
+        return siteSettings();
+    }
+
+    // ---- contact us ----------------------------------------------------------------
+
+    @GetMapping("/messages")
+    List<ContactMessageView> messages() {
+        return contact.latest();
     }
 }

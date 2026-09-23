@@ -1,7 +1,42 @@
 # Express & Possess
 
-Wish lists for a group. Members write down what they want; other members take care of it.
-Built for one family, published as a portfolio project.
+A shared wish list for a group of people. Members say what they want, and the others help make it
+happen.
+
+<p>
+  <img src="docs/screenshots/group.png" width="250" alt="A group's page: my wishes, the ones I am taking care of, and the ones nobody has taken yet">
+  <img src="docs/screenshots/take-care.png" width="250" alt="A wish nobody has taken yet, with the button I'll take care of it and an Incognito option">
+  <img src="docs/screenshots/in-process.png" width="250" alt="A wish being taken care of incognito, with a providing date and the Provided checkbox">
+</p>
+
+## What it is for
+
+- 🎁 **Family and friends.** Everyone writes down what they would like for a birthday or the
+  holidays. The others pick something to give, and nobody ends up buying the same present twice.
+- 💍 **Weddings and baby showers.** The couple lists the gifts they hope for and shares a link with
+  the guests. Each guest reserves the gift they will bring, and everyone sees what is still free.
+- 💻 **At work.** Staff ask for a laptop, a monitor, a licence or access to a system. The right
+  department takes the request, marks it done when it is ready, and the person confirms it arrived.
+- ✅ **Shared to-do lists.** Chores at home, tasks for volunteers, jobs before a move. People take
+  on the tasks they can do, and the list shows who is doing what.
+
+## How it works
+
+1. **Create a group.** Invite people by email, or share a link anyone can join with.
+2. **Express a wish.** Describe it, add shop links and a picture, and say when you would like it by.
+3. **Someone takes care of it.** A member presses "I'll take care of it". Only one person can, so
+   nothing is done twice. They can stay incognito to keep a surprise.
+4. **Provided.** When it is bought, made or done, they mark it provided.
+5. **In possession.** You confirm "Received with thanks", and the wish is fulfilled.
+
+The group hears about every new wish, and you hear about each step of yours, in the app and by
+email. Each wish has its own comments for questions such as size or colour. Groups are private:
+only their members see the wishes. On a phone the site installs to the home screen and opens like
+an app.
+
+## The project
+
+I built it for my family and publish it as a portfolio project.
 
 Specification: [docs/spec-v3.html](docs/spec-v3.html). Build order: [docs/plan.md](docs/plan.md).
 Which file does what: [docs/code-guide.md](docs/code-guide.md).

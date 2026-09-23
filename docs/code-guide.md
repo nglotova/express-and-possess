@@ -112,6 +112,8 @@ Each folder covers one subject, and most contain the same kinds of file:
 | `outbox` | Handing notifications to Kafka safely |
 | `admin` | The Administration page |
 | `demo` | The public demo with Alice, Bob and Carol |
+| `settings` | Site settings changed on the Administration page |
+| `contact` | Contact us: messages from members to the site administrators |
 | `common` | Shared helpers: errors, settings, email sending, links in text, random tokens |
 
 Settings, such as the database address and the mail server, are in
@@ -231,6 +233,22 @@ the messages wait in Kafka and are sent when it starts.
 `SecurityConfig` lets only site administrators reach `/api/admin`. The controller uses
 `AccountService`, `GroupService` (`restore`, `adminDelete`) and `ExpressionService.forceStatus`.
 
+Site settings, for now the number of invitation emails one member may send in 24 hours, are one row
+in the `site_settings` table, read and changed through
+[`SiteSettingsService.java`](../api/src/main/java/ca/glotov/expresspossess/settings/SiteSettingsService.java).
+`GroupService.invite` counts the member's recent invitation emails in `invitation_emails` before
+sending another.
+
+### Contact us
+
+The footer of every logged-in page links to [`ContactPage.tsx`](../web/src/pages/ContactPage.tsx),
+which sends the topic, the message and the page the member came from to
+[`ContactController`](../api/src/main/java/ca/glotov/expresspossess/contact/ContactController.java).
+[`ContactService`](../api/src/main/java/ca/glotov/expresspossess/contact/ContactService.java) allows five
+messages per member in 24 hours, saves the message, and tells every site administrator under the bell and
+by email through `NotificationService.notifyAdministrators`. The messages are listed at the top of the
+Administration page, each with a link to answer the member by email.
+
 ### The demo
 
 [`DemoSeeder.java`](../api/src/main/java/ca/glotov/expresspossess/demo/DemoSeeder.java) builds Alice,
@@ -249,6 +267,8 @@ starts:
 | `V1__schema.sql` | Creates every table: `users`, `password_reset_tokens`, `groups`, `group_members`, `group_invitations`, `expressions`, `comments`, `notifications`, `outbox_events` |
 | `V2__expression_links.sql` | Added a separate links field (later undone) |
 | `V3__links_in_description_and_link_pictures.sql` | Moved those links back into the description and added `picture_link` |
+| `V4__site_settings_and_invitation_limit.sql` | Added the site settings and the record of invitation emails sent |
+| `V5__contact_messages.sql` | Added the Contact us messages |
 
 Flyway records which files have run, so each runs once. To change the database, add a new file
 (`V4__...sql`); never edit one that has already run.

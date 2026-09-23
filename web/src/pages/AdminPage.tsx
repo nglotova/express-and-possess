@@ -1,10 +1,11 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
-import type { ExpressionStatus, ExpressionView, MemberView, Role, User } from "../api/types";
-import { ErrorText } from "../components/Form";
+import type { ContactMessageView, ContactTopic, ExpressionStatus, ExpressionView, MemberView, Role, User } from "../api/types";
+import { ErrorText, Field } from "../components/Form";
 import { PageHeader } from "../components/Layout";
 import { StatusChip } from "../components/StatusChip";
+import { formatTime } from "../components/format";
 import { useConfirm } from "../components/ConfirmDialog";
 
 interface AdminGroupRow {
@@ -23,16 +24,58 @@ interface AdminGroupDetail {
   expressions: ExpressionView[];
 }
 
+interface SiteSettings {
+  invitationsPerDay: number;
+}
+
 const STATUSES: ExpressionStatus[] = ["EXPRESSED", "IN_PROCESS", "PROVIDED", "IN_POSSESSION"];
 
-/** Section 11 of the spec: users, groups including archived ones, stuck expressions. */
+/** Section 11 of the spec: users, groups including archived ones, stuck expressions; plus Contact us messages and site settings. */
 export function AdminPage() {
   return (
     <>
       <PageHeader title="Administration" parent={{ to: "/", label: "My Groups" }} />
+      <Messages />
       <Users />
       <Groups />
+      <Settings />
     </>
+  );
+}
+
+const TOPIC_LABELS: Record<ContactTopic, string> = {
+  PROBLEM: "Problem",
+  SUGGESTION: "Suggestion",
+  OTHER: "Other",
+};
+
+/** What members wrote through Contact us, newest first. Answered by email. */
+function Messages() {
+  const messages = useQuery({ queryKey: ["admin", "messages"], queryFn: () => api<ContactMessageView[]>("/api/admin/messages") });
+  return (
+    <section className="section">
+      <h2>Messages</h2>
+      {messages.data?.length === 0 && <p className="muted">No messages yet.</p>}
+      <div className="stack">
+        {messages.data?.map((m) => (
+          <article key={m.id} className="message">
+            <div className="section-head">
+              <strong>
+                {TOPIC_LABELS[m.topic]} · {m.senderName}
+              </strong>
+              <span className="muted small">{formatTime(m.createdAt)}</span>
+            </div>
+            <p>{m.body}</p>
+            <div className="muted small">
+              <a href={`mailto:${m.senderEmail}?subject=${encodeURIComponent("Express & Possess: your message")}`}>
+                Reply to {m.senderEmail}
+              </a>
+              {m.page && <> · sent from {m.page}</>}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -193,5 +236,53 @@ function ForceStatus({ expression: e, groupId }: { expression: ExpressionView; g
       </div>
       <ErrorText error={force.error} />
     </form>
+  );
+}
+
+function Settings() {
+  const queryClient = useQueryClient();
+  const current = useQuery({ queryKey: ["admin", "settings"], queryFn: () => api<SiteSettings>("/api/admin/settings") });
+  const [perDay, setPerDay] = useState("");
+  useEffect(() => {
+    if (current.data) setPerDay(String(current.data.invitationsPerDay));
+  }, [current.data]);
+  const save = useMutation({
+    mutationFn: () => api<SiteSettings>("/api/admin/settings", "PUT", { invitationsPerDay: Number(perDay) }),
+    onSuccess: (s) => queryClient.setQueryData(["admin", "settings"], s),
+  });
+  const changed = current.data !== undefined && perDay !== String(current.data.invitationsPerDay);
+  return (
+    <section className="section">
+      <h2>Settings</h2>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          save.mutate();
+        }}
+        className="stack"
+      >
+        <Field
+          label="Invitation emails per member per day"
+          hint="Protects the site's email address from being used for spam. Site administrators have no limit."
+        >
+          <input
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={1000}
+            required
+            value={perDay}
+            onChange={(e) => setPerDay(e.target.value)}
+          />
+        </Field>
+        <ErrorText error={save.error} />
+        <div className="button-row">
+          <button type="submit" className="primary" disabled={!changed || save.isPending}>
+            Save
+          </button>
+          {save.isSuccess && !changed && <span className="muted">Saved.</span>}
+        </div>
+      </form>
+    </section>
   );
 }

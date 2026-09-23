@@ -10,5 +10,6 @@ public enum NotificationType {
     WISH_COMMENTED,
     GROUP_ADDED,
     GROUP_REMOVED,
-    GROUP_CLOSED
+    GROUP_CLOSED,
+    CONTACT_MESSAGE
 }

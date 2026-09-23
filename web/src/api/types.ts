@@ -112,3 +112,15 @@ export interface Inbox {
   unread: number;
   items: NotificationView[];
 }
+
+export type ContactTopic = "PROBLEM" | "SUGGESTION" | "OTHER";
+
+export interface ContactMessageView {
+  id: number;
+  senderName: string;
+  senderEmail: string;
+  topic: ContactTopic;
+  body: string;
+  page: string | null;
+  createdAt: string;
+}

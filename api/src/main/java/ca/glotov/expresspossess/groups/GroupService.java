@@ -1,5 +1,6 @@
 package ca.glotov.expresspossess.groups;
 
+import ca.glotov.expresspossess.auth.Role;
 import ca.glotov.expresspossess.auth.User;
 import ca.glotov.expresspossess.auth.UserRepository;
 import ca.glotov.expresspossess.common.ApiException;
@@ -7,11 +8,14 @@ import ca.glotov.expresspossess.common.AppProperties;
 import ca.glotov.expresspossess.common.EmailService;
 import ca.glotov.expresspossess.common.Tokens;
 import ca.glotov.expresspossess.expressions.ExpressionQueries;
+import ca.glotov.expresspossess.settings.SiteSettingsService;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +34,8 @@ public class GroupService {
     private final GroupRepository groups;
     private final GroupMemberRepository members;
     private final GroupInvitationRepository invitations;
+    private final InvitationEmailRepository invitationEmails;
+    private final SiteSettingsService settings;
     private final UserRepository users;
     private final EmailService email;
     private final AppProperties properties;
@@ -40,6 +46,8 @@ public class GroupService {
     GroupService(GroupRepository groups,
                  GroupMemberRepository members,
                  GroupInvitationRepository invitations,
+                 InvitationEmailRepository invitationEmails,
+                 SiteSettingsService settings,
                  UserRepository users,
                  EmailService email,
                  AppProperties properties,
@@ -49,6 +57,8 @@ public class GroupService {
         this.groups = groups;
         this.members = members;
         this.invitations = invitations;
+        this.invitationEmails = invitationEmails;
+        this.settings = settings;
         this.users = users;
         this.email = email;
         this.properties = properties;
@@ -156,7 +166,8 @@ public class GroupService {
 
     public InviteOutcome invite(Long groupId, Long adminId, String address) {
         Group group = adminGroup(groupId, adminId);
-        String inviter = users.findById(adminId).map(User::getName).orElse("A member");
+        User sender = users.findById(adminId).orElseThrow();
+        String inviter = sender.getName();
         Optional<User> existing = users.findByEmailIgnoreCase(address);
         if (existing.isPresent()) {
             User user = existing.get();
@@ -170,6 +181,8 @@ public class GroupService {
         if (invitations.findByGroupIdAndEmailIgnoreCaseAndAcceptedAtIsNull(groupId, address).isPresent()) {
             throw ApiException.conflict("This address has already been invited");
         }
+        requireInvitationsLeft(sender);
+        invitationEmails.save(new InvitationEmail(sender.getId(), clock.instant()));
         String token = Tokens.random();
         invitations.save(new GroupInvitation(groupId, address.trim(), Tokens.hash(token), adminId,
                 clock.instant().plus(properties.invitationTtl())));
@@ -181,6 +194,23 @@ public class GroupService {
                         + properties.baseUrl() + "/invite?token=" + token + "\n\n"
                         + "The link works once and expires in " + properties.invitationTtl().toDays() + " days.\n");
         return InviteOutcome.INVITED;
+    }
+
+    /**
+     * Anyone can register, and each invitation is an email sent in the site's name, so one member
+     * may send only so many a day. The limit is a site setting; site administrators have none.
+     */
+    private void requireInvitationsLeft(User sender) {
+        if (sender.getRole() == Role.ADMIN) {
+            return;
+        }
+        int limit = settings.invitationsPerDay();
+        Instant dayAgo = clock.instant().minus(Duration.ofDays(1));
+        if (invitationEmails.countBySenderIdAndSentAtAfter(sender.getId(), dayAgo) >= limit) {
+            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "You have sent " + limit
+                    + " invitations in the last 24 hours, which is the limit. Try again tomorrow,"
+                    + " or share the group's link instead.");
+        }
     }
 
     public void cancelInvitation(Long groupId, Long adminId, Long invitationId) {

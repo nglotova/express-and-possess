@@ -16,6 +16,7 @@ import { NotificationsPage } from "./pages/NotificationsPage";
 import { InvitePage, JoinPage } from "./pages/JoinPages";
 import { AdminPage } from "./pages/AdminPage";
 import { AboutPage } from "./pages/AboutPage";
+import { ContactPage } from "./pages/ContactPage";
 
 /** Pages behind login. Sends a visitor to the login page and back again afterwards. */
 function RequireAuth() {
@@ -56,6 +57,7 @@ export function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/contact" element={<ContactPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

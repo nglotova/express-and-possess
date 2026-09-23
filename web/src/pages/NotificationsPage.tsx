@@ -50,6 +50,7 @@ export function NotificationsPage() {
 }
 
 function target(n: NotificationView) {
+  if (n.type === "CONTACT_MESSAGE") return "/admin";
   if (n.expressionId) return `/expressions/${n.expressionId}`;
   if (n.groupId) return `/groups/${n.groupId}`;
   return "/";

@@ -763,6 +763,44 @@ select {
 
 /* ---- demo ------------------------------------------------------------------ */
 
+/* ---- footer and contact ----------------------------------------------------- */
+
+.footer {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 2rem;
+  border-top: 1px solid var(--line);
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.choices {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.choices legend {
+  padding: 0;
+  margin-bottom: 0.25rem;
+}
+
+.message {
+  padding: 0.8rem 0.9rem;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.message p {
+  margin: 0.4rem 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 /* ---- about page -------------------------------------------------------------- */
 
 .intro {
