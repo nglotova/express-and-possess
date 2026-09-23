@@ -41,6 +41,9 @@ export function GroupsPage() {
       <Link to="/groups/new" className="button primary block">
         Create group
       </Link>
+      <p className="links">
+        <Link to="/about">What can Express &amp; Possess be used for?</Link>
+      </p>
     </>
   );
 }

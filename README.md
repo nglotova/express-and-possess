@@ -40,8 +40,8 @@ one winner.
 
 ## The demo
 
-The same stack runs twice on one server: the private family instance and a public demo
-seeded with a fictional family. The demo's login page has "Log in as Alice / Bob / Carol"
+The same stack runs twice on one server: the main site, where anyone can register and
+groups stay private to their members, and a public demo seeded with a fictional family. The demo's login page has "Log in as Alice / Bob / Carol"
 buttons, its emails land in a Mailpit inbox reviewers can open, and everything is wiped
 and reseeded every night. Deployment: [docs/deploy.md](docs/deploy.md).
 

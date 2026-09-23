@@ -9,6 +9,12 @@ spring:
   mail:
     host: ${MAIL_HOST:localhost}
     port: ${MAIL_PORT:1025}
+    # Mailpit needs no login; a real mail service such as Brevo needs all four.
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      "[mail.smtp.auth]": ${MAIL_AUTH:false}
+      "[mail.smtp.starttls.enable]": ${MAIL_STARTTLS:false}
 
 notifier:
   topic: notifications

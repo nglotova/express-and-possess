@@ -13,14 +13,14 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
     networks:
-      - family
+      - main
       - demo
     restart: unless-stopped
 
 networks:
-  family:
+  main:
     external: true
-    name: family_default
+    name: main_default
   demo:
     external: true
     name: demo_default

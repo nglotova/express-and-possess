@@ -49,6 +49,9 @@ export function LoginPage() {
   return (
     <main className="page narrow">
       <h1 className="brand-title">Express &amp; Possess</h1>
+      <p className="muted intro">
+        A shared wish list for family, friends, a wedding or a team. <Link to="/about">What is it for?</Link>
+      </p>
       <form onSubmit={submit} className="stack">
         <Field label="Email">
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />

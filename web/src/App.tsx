@@ -15,6 +15,7 @@ import { ProfilePage } from "./pages/ProfilePage";
 import { NotificationsPage } from "./pages/NotificationsPage";
 import { InvitePage, JoinPage } from "./pages/JoinPages";
 import { AdminPage } from "./pages/AdminPage";
+import { AboutPage } from "./pages/AboutPage";
 
 /** Pages behind login. Sends a visitor to the login page and back again afterwards. */
 function RequireAuth() {
@@ -36,6 +37,7 @@ function RequireAuth() {
 export function App() {
   return (
     <Routes>
+      <Route path="/about" element={<AboutPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />

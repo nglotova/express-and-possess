@@ -1,14 +1,14 @@
-# Replace the host names with yours. Container names come from the Compose project names.
+# Container names come from the Compose project names, main and demo.
 
-wishes.example.com {
-	reverse_proxy family-web-1:80
+expresspossess.glotov.ca {
+	reverse_proxy main-web-1:80
 }
 
-demo.example.com {
+demo.expresspossess.glotov.ca {
 	reverse_proxy demo-web-1:80
 }
 
 # The demo's inbox, so reviewers can see the notification emails arrive.
-mail.demo.example.com {
+mail.demo.expresspossess.glotov.ca {
 	reverse_proxy demo-mailpit-1:8025
 }

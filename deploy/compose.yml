@@ -1,8 +1,8 @@
 # One complete instance of Express & Possess. Run it twice with different project names
-# and env files: once for the family, once for the public demo. Caddy (deploy/caddy) sits
-# in front of both and handles the domain names and certificates.
+# and env files: once for the main site, once for the public demo. Caddy (deploy/caddy)
+# sits in front of both and handles the domain names and certificates.
 #
-#   docker compose -p family --env-file family.env -f compose.yml up -d --build
+#   docker compose -p main --env-file main.env -f compose.yml up -d --build
 #   docker compose -p demo   --env-file demo.env   -f compose.yml up -d --build
 
 services:
@@ -41,8 +41,8 @@ services:
       - kafka-data:/var/lib/kafka/data
     restart: unless-stopped
 
-  # The demo exposes this through Caddy so reviewers can read the emails. The family
-  # instance uses a real SMTP server instead and simply leaves it unused.
+  # The demo exposes this through Caddy so reviewers can read the emails. The main site
+  # sends through a real mail service instead and simply leaves it unused.
   mailpit:
     image: axllent/mailpit:latest
     restart: unless-stopped
@@ -58,6 +58,10 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       MAIL_HOST: ${MAIL_HOST:-mailpit}
       MAIL_PORT: ${MAIL_PORT:-1025}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_AUTH: ${MAIL_AUTH:-false}
+      MAIL_STARTTLS: ${MAIL_STARTTLS:-false}
       MAIL_FROM: ${MAIL_FROM}
       APP_BASE_URL: https://${DOMAIN}
       APP_ADMIN_EMAILS: ${ADMIN_EMAILS:-}
@@ -65,6 +69,8 @@ services:
       SERVER_FORWARD_HEADERS_STRATEGY: framework
     volumes:
       - uploads:/app/uploads
+    # Two instances share one server. The JVM takes 75% of this as its heap limit.
+    mem_limit: 1g
     depends_on:
       postgres:
         condition: service_healthy
@@ -80,7 +86,12 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       MAIL_HOST: ${MAIL_HOST:-mailpit}
       MAIL_PORT: ${MAIL_PORT:-1025}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_AUTH: ${MAIL_AUTH:-false}
+      MAIL_STARTTLS: ${MAIL_STARTTLS:-false}
       MAIL_FROM: ${MAIL_FROM}
+    mem_limit: 512m
     depends_on:
       kafka:
         condition: service_started
