@@ -97,7 +97,7 @@ The demo sends no real email: its messages go to its own Mailpit inbox.
 On the server:
 
 ```bash
-git clone https://github.com/<account>/express-and-possess.git
+git clone https://github.com/nglotova/express-and-possess.git
 cd express-and-possess/deploy
 cp main.env.example main.env
 cp demo.env.example demo.env
