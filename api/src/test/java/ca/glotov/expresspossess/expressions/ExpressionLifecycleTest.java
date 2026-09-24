@@ -78,7 +78,7 @@ class ExpressionLifecycleTest extends ApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.wantedBy").value("2026-12-01")));
 
-        // Got it is not available before Provided.
+        // Received with thanks is not available before Provided.
         postAs(natasha, "/api/expressions/" + id + "/received").andExpect(status().isConflict());
 
         JsonNode provided = bodyOf(putAs(andrei, "/api/expressions/" + id + "/care",

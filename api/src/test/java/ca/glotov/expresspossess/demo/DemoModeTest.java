@@ -52,7 +52,7 @@ class DemoModeTest {
         mvc.perform(get("/api/groups/1/activity").session(alice))
                 .andExpect(jsonPath("$.myExpressions[0].status").value("IN_PROCESS"))
                 .andExpect(jsonPath("$.notTaken.length()").value(1));
-        // Alice is the demo's system administrator and sees the real helper; Carol does not.
+        // Alice is the demo's site administrator and sees the real helper; Carol does not.
         MockHttpSession carol = (MockHttpSession) mvc.perform(post("/api/auth/demo/Carol").with(csrf()))
                 .andReturn().getRequest().getSession(false);
         mvc.perform(get("/api/expressions/2").session(carol))

@@ -5,8 +5,8 @@ import type { User } from "../api/types";
 
 /**
  * The header on every logged-in page: app name, the bell with its unread count, and the
- * member's name leading to the profile. The footer has Contact us. Pages put their one parent link in the
- * PageHeader below; the browser's back gesture does the rest.
+ * member's name leading to the profile. The footer has Contact us. Pages put their one
+ * parent link in the PageHeader below; the browser's back gesture does the rest.
  */
 export function Layout({ me, children }: { me: User; children: ReactNode }) {
   const unread = useUnreadCount();

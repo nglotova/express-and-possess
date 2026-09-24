@@ -30,7 +30,10 @@ interface SiteSettings {
 
 const STATUSES: ExpressionStatus[] = ["EXPRESSED", "IN_PROCESS", "PROVIDED", "IN_POSSESSION"];
 
-/** Section 11 of the spec: users, groups including archived ones, stuck expressions; plus Contact us messages and site settings. */
+/**
+ * Section 11 of the spec: users, groups including archived ones, stuck expressions. Also the
+ * Contact us messages and the site settings.
+ */
 export function AdminPage() {
   return (
     <>

@@ -93,7 +93,7 @@ public abstract class ApiTest {
         return json.readTree(actions.andReturn().getResponse().getContentAsString());
     }
 
-    /** Body for the creator's Submit, carrying the version from the last response. */
+    /** Body for the creator's Save, carrying the version from the last response. */
     protected static Map<String, Object> wishBody(String description, String wantedBy, JsonNode current) {
         Map<String, Object> body = new HashMap<>();
         body.put("description", description);
@@ -102,7 +102,7 @@ public abstract class ApiTest {
         return body;
     }
 
-    /** Body for the implementer's Submit, carrying the version from the last response. */
+    /** Body for the implementer's Save, carrying the version from the last response. */
     protected static Map<String, Object> careBody(boolean incognito, String providingBy, boolean provided,
                                                   JsonNode current) {
         Map<String, Object> body = new HashMap<>();

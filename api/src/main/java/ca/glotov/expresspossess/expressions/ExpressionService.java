@@ -121,7 +121,7 @@ public class ExpressionService {
         return changed(id, userId);
     }
 
-    /** The creator ticks Got it. */
+    /** The creator ticks Received with thanks. */
     public ExpressionView markReceived(Long id, Long userId) {
         Expression expression = editable(id, userId);
         requireCreator(expression, userId);
@@ -169,7 +169,7 @@ public class ExpressionService {
         return changed(id, userId);
     }
 
-    /** The implementer's Submit: Incognito, the providing-by date, and optionally Provided. */
+    /** The implementer's Save: Incognito, the providing-by date, and optionally Provided. */
     public ExpressionView editCare(Long id, Long userId, boolean incognito, LocalDate providingBy,
                                    boolean provided, long version) {
         Expression expression = editable(id, userId);
@@ -218,7 +218,7 @@ public class ExpressionService {
 
     // ---- for the administration page -----------------------------------------------
 
-    /** A system administrator sees any expression, with the real names. */
+    /** A site administrator sees any expression, with the real names. */
     @Transactional(readOnly = true)
     public ExpressionView adminGet(Long id) {
         Expression expression = expressions.findById(id)

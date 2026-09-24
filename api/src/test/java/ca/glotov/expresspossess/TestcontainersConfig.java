@@ -13,8 +13,8 @@ import java.time.Clock;
 
 /**
  * Real infrastructure for integration tests: PostgreSQL for the schema, Kafka for the
- * outbox relay, Mailpit to catch the emails the application sends. Spring caches the context, so every test class that
- * imports this shares one set of containers.
+ * outbox relay, Mailpit to catch the emails the application sends. Spring caches the
+ * context, so every test class that imports this shares one set of containers.
  */
 @TestConfiguration(proxyBeanMethods = false)
 public class TestcontainersConfig {

@@ -56,7 +56,7 @@ class IncognitoTest extends ApiTest {
                             org.hamcrest.Matchers.everyItem(org.hamcrest.Matchers.is("Incognito"))));
         }
 
-        // The implementer and a system administrator see the real name.
+        // The implementer and a site administrator see the real name.
         for (Member viewer : new Member[] {andrei, admin}) {
             getAs(viewer, "/api/expressions/" + id)
                     .andExpect(jsonPath("$.incognito").value(true))

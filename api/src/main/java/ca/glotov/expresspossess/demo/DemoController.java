@@ -15,7 +15,7 @@ import java.util.List;
 
 /**
  * The "Log in as Alice / Bob / Carol" buttons. Both endpoints answer 404 unless the
- * instance runs in demo mode, so the family instance does not even reveal they exist.
+ * instance runs in demo mode, so the main site does not even reveal they exist.
  */
 @RestController
 @RequestMapping("/api/auth/demo")

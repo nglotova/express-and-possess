@@ -58,5 +58,5 @@
   <path d="M350,120 L300,120 L300,60 L120,60 L120,108" fill="none" stroke="#0f6b6b" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
   <text x="210" y="52" text-anchor="middle" fill="#0f6b6b" font-size="11">in-app bell: rows written in the same transaction, no Kafka</text>
 
-  <text x="20" y="318" fill="#4f5a62" font-size="11">One Docker Compose stack. The same stack runs twice on one server: the family instance and the public demo.</text>
+  <text x="20" y="318" fill="#4f5a62" font-size="11">One Docker Compose stack. The same stack runs twice on one server: the main site and the public demo.</text>
 </svg>
