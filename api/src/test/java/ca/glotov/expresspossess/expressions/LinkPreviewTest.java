@@ -1,11 +1,14 @@
 package ca.glotov.expresspossess.expressions;
 
 import ca.glotov.expresspossess.ApiTest;
+import ca.glotov.expresspossess.MutableClock;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
 
@@ -14,7 +17,9 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
@@ -39,8 +44,22 @@ class LinkPreviewTest extends ApiTest {
     private static final byte[] TWO = {(byte) 0x89, 'P', 'N', 'G', 2};
     private static final byte[] MINE = {(byte) 0x89, 'P', 'N', 'G', 3};
 
+    private static final String ROBOT_CHECK = "<html><head><title>Amazon.ca</title></head><body>Robot check</body></html>";
+    private static final String PRODUCT = "<html><head><meta property=\"og:image\" content=\"/img/one.png\"></head></html>";
+
     private static HttpServer shop;
     private static String base;
+
+    /** How many more times each flaky page answers with a robot check before the product. */
+    private static final AtomicInteger busyChecksLeft = new AtomicInteger();
+    private static final AtomicInteger flakyChecksLeft = new AtomicInteger();
+    private static final AtomicInteger refusals = new AtomicInteger();
+
+    @Autowired
+    MutableClock clock;
+
+    @Autowired
+    LinkPreviewService pictures;
 
     @BeforeAll
     static void openTheShop() throws IOException {
@@ -52,6 +71,12 @@ class LinkPreviewTest extends ApiTest {
         page("/shop/titled", "<html><head><title>Frying pan</title>"
                 + "<meta property=\"og:image\" content=\"/img/two.png\"></head><body></body></html>");
         page("/shop/none", "<html><head><title>No picture here</title></head><body></body></html>");
+        flaky("/shop/busy", busyChecksLeft);
+        flaky("/shop/flaky", flakyChecksLeft);
+        shop.createContext("/shop/refuses", exchange -> {
+            refusals.incrementAndGet();
+            send(exchange, "text/html; charset=utf-8", ROBOT_CHECK.getBytes(StandardCharsets.UTF_8));
+        });
         image("/img/one.png", ONE);
         image("/img/two.png", TWO);
         shop.createContext("/go/one", exchange -> {
@@ -66,6 +91,11 @@ class LinkPreviewTest extends ApiTest {
     @AfterAll
     static void closeTheShop() {
         shop.stop(0);
+    }
+
+    @AfterEach
+    void resetClock() {
+        clock.reset();
     }
 
     @Test
@@ -153,6 +183,51 @@ class LinkPreviewTest extends ApiTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    void aPreviewWithoutAPictureIsNotKeptSoTheNextLookGetsPastARobotCheck() throws Exception {
+        Member natasha = register("Natasha");
+        busyChecksLeft.set(1);
+        String link = base + "/shop/busy";
+
+        JsonNode checked = bodyOf(mvc.perform(get("/api/link-preview").param("url", link).session(natasha.session())));
+        assertThat(checked.get("pictureUrl").isNull()).isTrue();
+
+        JsonNode product = bodyOf(mvc.perform(get("/api/link-preview").param("url", link).session(natasha.session())));
+        assertThat(picture(natasha, product)).isEqualTo(ONE);
+    }
+
+    @Test
+    void aLinkThatGaveNoPictureIsTriedAgainLaterAndAShopThatAlwaysRefusesIsLeftAlone() throws Exception {
+        Member natasha = register("Natasha");
+        long group = group(natasha);
+        flakyChecksLeft.set(1);
+        long flaky = wish(natasha, group, "Book " + base + "/shop/flaky").get("id").asLong();
+        long refused = wish(natasha, group, "Perfume " + base + "/shop/refuses").get("id").asLong();
+
+        // The first try met a robot check; the page stops waiting all the same.
+        JsonNode first = awaitView(natasha, flaky, v -> !v.get("picturePending").asBoolean());
+        assertThat(first.get("pictureUrl").isNull()).isTrue();
+        awaitView(natasha, refused, v -> !v.get("picturePending").asBoolean());
+        int refusalsAtFirst = refusals.get();
+
+        // Not before the pause is over.
+        pictures.retryFailed();
+        assertThat(bodyOf(getAs(natasha, "/api/expressions/" + flaky)).get("pictureUrl").isNull()).isTrue();
+
+        clock.advance(Duration.ofMinutes(16));
+        pictures.retryFailed();
+        JsonNode retried = bodyOf(getAs(natasha, "/api/expressions/" + flaky));
+        assertThat(picture(natasha, retried)).isEqualTo(ONE);
+        assertThat(retried.get("pictureFromLink").asBoolean()).isTrue();
+
+        // Four tries in all for a shop that never gives a picture, then no more.
+        for (Duration pause : List.of(Duration.ofHours(2), Duration.ofHours(5), Duration.ofDays(1), Duration.ofDays(7))) {
+            clock.advance(pause);
+            pictures.retryFailed();
+        }
+        assertThat(refusals.get() - refusalsAtFirst).isEqualTo(3);
+    }
+
     // ---- helpers -------------------------------------------------------------------
 
     private long group(Member admin) throws Exception {
@@ -187,12 +262,23 @@ class LinkPreviewTest extends ApiTest {
     }
 
     private static void respond(String path, String contentType, byte[] body) {
+        shop.createContext(path, exchange -> send(exchange, contentType, body));
+    }
+
+    /** A page that answers with a robot check while {@code checksLeft} lasts, then with the product. */
+    private static void flaky(String path, AtomicInteger checksLeft) {
         shop.createContext(path, exchange -> {
-            exchange.getResponseHeaders().add("Content-Type", contentType);
-            exchange.sendResponseHeaders(200, body.length);
-            try (OutputStream out = exchange.getResponseBody()) {
-                out.write(body);
-            }
+            String html = checksLeft.getAndDecrement() > 0 ? ROBOT_CHECK : PRODUCT;
+            send(exchange, "text/html; charset=utf-8", html.getBytes(StandardCharsets.UTF_8));
         });
+    }
+
+    private static void send(com.sun.net.httpserver.HttpExchange exchange, String contentType, byte[] body)
+            throws IOException {
+        exchange.getResponseHeaders().add("Content-Type", contentType);
+        exchange.sendResponseHeaders(200, body.length);
+        try (OutputStream out = exchange.getResponseBody()) {
+            out.write(body);
+        }
     }
 }

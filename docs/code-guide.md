@@ -211,6 +211,10 @@ administrator forces a stage, `forceStatus` adds a note with the reason to the s
 
 A picture the creator uploaded is never replaced by one from a link.
 
+Shops sometimes answer the server with a robot check instead of the product page, Amazon among
+them. So a preview without a picture is not kept in memory, and `LinkPreviewService.retryFailed`
+tries a wish's link again 15 minutes, 1 hour and 4 hours after a failed try, then gives up.
+
 ### Notifications
 
 | Step | Where |
@@ -269,6 +273,7 @@ starts:
 | `V3__links_in_description_and_link_pictures.sql` | Moved those links back into the description and added `picture_link` |
 | `V4__site_settings_and_invitation_limit.sql` | Added the site settings and the record of invitation emails sent |
 | `V5__contact_messages.sql` | Added the Contact us messages |
+| `V6__link_picture_retries.sql` | Added the count and time of tries at a picture from a link |
 
 Flyway records which files have run, so each runs once. To change the database, add a new file
 (`V4__...sql`); never edit one that has already run.

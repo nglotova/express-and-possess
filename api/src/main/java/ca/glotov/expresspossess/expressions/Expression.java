@@ -47,6 +47,14 @@ public class Expression {
     @Column(name = "picture_link")
     private String pictureLink;
 
+    /** Failed tries at taking a picture from {@link #pictureLink}; 0 once it worked or nothing was tried. */
+    @Column(name = "picture_attempts", nullable = false)
+    private int pictureAttempts;
+
+    /** When a picture was last taken, or tried to be taken, from the link. */
+    @Column(name = "picture_tried_at")
+    private Instant pictureTriedAt;
+
     @Column(name = "wanted_by")
     private LocalDate wantedBy;
 
@@ -109,6 +117,14 @@ public class Expression {
         return pictureLink;
     }
 
+    int getPictureAttempts() {
+        return pictureAttempts;
+    }
+
+    Instant getPictureTriedAt() {
+        return pictureTriedAt;
+    }
+
     public LocalDate getWantedBy() {
         return wantedBy;
     }
@@ -153,13 +169,15 @@ public class Expression {
     void setPicture(String pictureUrl) {
         this.pictureUrl = pictureUrl;
         this.pictureLink = null;
+        this.pictureAttempts = 0;
         touch();
     }
 
-    /** A picture taken from the first link; the address is kept even when the shop gave none. */
+    /** A picture taken from the first link, already known from the preview while typing. */
     void useLinkPicture(String pictureUrl, String link) {
         this.pictureUrl = pictureUrl;
         this.pictureLink = link;
+        this.pictureAttempts = 0;
         touch();
     }
 

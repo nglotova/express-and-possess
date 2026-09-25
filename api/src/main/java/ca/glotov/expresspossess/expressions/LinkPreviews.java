@@ -15,6 +15,9 @@ import java.util.Optional;
  * application.yml). The page asks for a preview while the member types, so by the time the
  * wish is saved its picture is usually already known and goes on at once.
  *
+ * <p>Only previews with a picture are kept. A shop that answers without one may have sent a
+ * robot check instead of the product page, which the next request often gets past.
+ *
  * <p>A preview the member never uses leaves its picture file behind; for a family-sized
  * instance that is a few kilobytes and not worth a clean-up job.
  */
@@ -43,8 +46,8 @@ public class LinkPreviews {
         this.caches = caches;
     }
 
-    /** Fetches once per hour per address; concurrent callers for one address wait for one fetch. */
-    @Cacheable(cacheNames = CACHE, key = "#url", sync = true)
+    /** Fetches a preview with a picture once per hour per address; one without is fetched again each time. */
+    @Cacheable(cacheNames = CACHE, key = "#url", unless = "#result.pictureUrl() == null")
     public LinkPreview lookup(String url) {
         Optional<LinkPreviewFetcher.Preview> page = fetcher.preview(url);
         if (page.isEmpty()) {

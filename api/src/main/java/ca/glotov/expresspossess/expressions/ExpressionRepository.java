@@ -32,16 +32,34 @@ public interface ExpressionRepository extends JpaRepository<Expression, Long> {
      */
     @Modifying
     @Transactional
-    @Query("update Expression e set e.pictureUrl = :url, e.pictureLink = :link "
+    @Query("update Expression e set e.pictureUrl = :url, e.pictureLink = :link, "
+            + "e.pictureAttempts = 0, e.pictureTriedAt = :now "
             + "where e.id = :id and (e.pictureUrl is null or e.pictureLink is not null) "
             + "and locate(:link, e.description) > 0")
-    int setLinkPicture(@Param("id") Long id, @Param("url") String url, @Param("link") String link);
+    int setLinkPicture(@Param("id") Long id, @Param("url") String url, @Param("link") String link,
+                       @Param("now") Instant now);
+
+    /**
+     * Records that the link gave no picture this time, counting the tries for the same link,
+     * under the same conditions as {@link #setLinkPicture}. A picture from an earlier link goes.
+     */
+    @Modifying
+    @Transactional
+    @Query("update Expression e set e.pictureUrl = null, "
+            + "e.pictureAttempts = case when e.pictureLink = :link then e.pictureAttempts + 1 else 1 end, "
+            + "e.pictureLink = :link, e.pictureTriedAt = :now "
+            + "where e.id = :id and (e.pictureUrl is null or e.pictureLink is not null) "
+            + "and locate(:link, e.description) > 0")
+    int recordLinkPictureFailure(@Param("id") Long id, @Param("link") String link, @Param("now") Instant now);
 
     @Modifying
     @Transactional
-    @Query("update Expression e set e.pictureUrl = null, e.pictureLink = null "
-            + "where e.id = :id and e.pictureLink is not null")
+    @Query("update Expression e set e.pictureUrl = null, e.pictureLink = null, e.pictureAttempts = 0, "
+            + "e.pictureTriedAt = null where e.id = :id and e.pictureLink is not null")
     int clearLinkPicture(@Param("id") Long id);
+
+    /** Wishes whose link has given no picture yet, with tries left. */
+    List<Expression> findByPictureUrlIsNullAndPictureLinkIsNotNullAndPictureAttemptsBetween(int from, int to);
 
     @Query("select e.id from Expression e where e.pictureUrl is null and e.pictureLink is null "
             + "and (e.description like '%http://%' or e.description like '%https://%')")
