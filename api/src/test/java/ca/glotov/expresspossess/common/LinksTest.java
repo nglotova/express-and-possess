@@ -25,4 +25,10 @@ class LinksTest {
                 .isEqualTo("Toner\nsoft pink");
         assertThat(Links.withoutLinks("https://only.a/link")).isEmpty();
     }
+
+    @Test
+    void theSiteALinkPointsTo() {
+        assertThat(Links.site("https://www.amazon.ca/dp/B07XXDNZJ9")).isEqualTo("amazon.ca");
+        assertThat(Links.site("https://shop.two/b")).isEqualTo("shop.two");
+    }
 }

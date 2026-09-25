@@ -1,5 +1,6 @@
 package ca.glotov.expresspossess.common;
 
+import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -53,7 +54,17 @@ public final class Links {
                 .collect(Collectors.joining("\n"));
     }
 
-    private static String trimTrailing(String url) {
+    /** The site a link points to, without "www.": "amazon.ca". The link itself when it has no host. */
+    public static String site(String url) {
+        try {
+            String host = URI.create(url).getHost();
+            return host == null ? url : host.replaceFirst("^www\\.", "");
+        } catch (IllegalArgumentException e) {
+            return url;
+        }
+    }
+
+        private static String trimTrailing(String url) {
         int end = url.length();
         while (end > 0 && TRAILING.indexOf(url.charAt(end - 1)) >= 0) {
             end--;

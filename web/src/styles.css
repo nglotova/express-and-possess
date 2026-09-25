@@ -615,9 +615,15 @@ button.link.danger {
   color: var(--danger);
 }
 
+/* The picture chooser is a label around a hidden file input; it looks like the link buttons beside it. */
 .link.file {
   cursor: pointer;
-  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.link.file:hover {
+  text-decoration: underline;
 }
 
 .button-row {

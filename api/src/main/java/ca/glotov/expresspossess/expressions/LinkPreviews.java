@@ -1,5 +1,6 @@
 package ca.glotov.expresspossess.expressions;
 
+import ca.glotov.expresspossess.common.Links;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
@@ -7,7 +8,6 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
-import java.net.URI;
 import java.util.Optional;
 
 /**
@@ -51,7 +51,7 @@ public class LinkPreviews {
     public LinkPreview lookup(String url) {
         Optional<LinkPreviewFetcher.Preview> page = fetcher.preview(url);
         if (page.isEmpty()) {
-            return new LinkPreview(url, site(url), null, null);
+            return new LinkPreview(url, Links.site(url), null, null);
         }
         String pictureUrl = null;
         LinkPreviewFetcher.Image image = page.get().image();
@@ -62,21 +62,12 @@ public class LinkPreviews {
                 log.info("Could not keep the picture from {}: {}", url, e.getMessage());
             }
         }
-        return new LinkPreview(url, site(url), page.get().title(), pictureUrl);
+        return new LinkPreview(url, Links.site(url), page.get().title(), pictureUrl);
     }
 
     /** A preview already fetched for this address, without fetching. */
     public Optional<LinkPreview> cached(String url) {
         Cache cache = caches.getCache(CACHE);
         return cache == null ? Optional.empty() : Optional.ofNullable(cache.get(url, LinkPreview.class));
-    }
-
-    static String site(String url) {
-        try {
-            String host = URI.create(url).getHost();
-            return host == null ? url : host.replaceFirst("^www\\.", "");
-        } catch (IllegalArgumentException e) {
-            return url;
-        }
     }
 }

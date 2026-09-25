@@ -12,6 +12,7 @@ import { LinkList, findLinks, withoutLinks } from "../components/links";
 import { LinkPreviewCard } from "../components/LinkPreviewCard";
 import { useSettledFirstLink } from "../components/useDebounced";
 import { prepareImage } from "../components/image";
+import { NO_PICTURE_ON_CLIPBOARD, pictureFromClipboard, usePastedPicture } from "../components/clipboard";
 import { useConfirm } from "../components/ConfirmDialog";
 
 /**
@@ -73,6 +74,21 @@ function WishSection({ expression: e }: { expression: ExpressionView }) {
     form.append("file", await prepareImage(file));
     return api<ExpressionView>(`/api/expressions/${e.id}/picture`, "POST", form);
   });
+  const [pasteProblem, setPasteProblem] = useState<string | null>(null);
+  function uploadPicture(file: File) {
+    setPasteProblem(null);
+    picture.mutate(file);
+  }
+  usePastedPicture(uploadPicture, e.canEditWish);
+  async function pastePicture() {
+    try {
+      const file = await pictureFromClipboard();
+      if (file) uploadPicture(file);
+      else setPasteProblem(NO_PICTURE_ON_CLIPBOARD);
+    } catch {
+      setPasteProblem(NO_PICTURE_ON_CLIPBOARD);
+    }
+  }
   const remove = useMutation({
     mutationFn: () => api<void>(`/api/expressions/${e.id}`, "DELETE"),
     onSuccess: () => {
@@ -92,7 +108,7 @@ function WishSection({ expression: e }: { expression: ExpressionView }) {
   const pictureLabel = picture.isPending
     ? "Uploading…"
     : !e.pictureUrl
-      ? "Add or take a picture"
+      ? "Add a picture"
       : e.pictureFromLink
         ? "Use my own picture"
         : "Replace picture";
@@ -119,10 +135,20 @@ function WishSection({ expression: e }: { expression: ExpressionView }) {
                 hidden
                 onChange={(ev) => {
                   const file = ev.target.files?.[0];
-                  if (file) picture.mutate(file);
+                  if (file) uploadPicture(file);
                 }}
               />
             </label>
+          )}
+          {e.canEditWish && (
+            <button type="button" className="link" onClick={pastePicture} disabled={picture.isPending}>
+              Paste a picture
+            </button>
+          )}
+          {pasteProblem && (
+            <p className="error small" role="alert">
+              {pasteProblem}
+            </p>
           )}
         </div>
         {e.canEditWish ? (

@@ -9,6 +9,7 @@ import { PageHeader } from "../components/Layout";
 import { LinkPreviewCard } from "../components/LinkPreviewCard";
 import { LinkList, findLinks, withoutLinks } from "../components/links";
 import { prepareImage } from "../components/image";
+import { NO_PICTURE_ON_CLIPBOARD, pictureFromClipboard, usePastedPicture } from "../components/clipboard";
 import { useSettledFirstLink } from "../components/useDebounced";
 
 export function NewExpressionPage() {
@@ -24,10 +25,24 @@ export function NewExpressionPage() {
   const firstLink = useSettledFirstLink(description);
   const linkPicture = useLinkPreview(firstLink).data?.pictureUrl ?? null;
 
+  const [pasteProblem, setPasteProblem] = useState<string | null>(null);
+
   function choosePicture(file: File | null) {
     if (ownPreview) URL.revokeObjectURL(ownPreview);
+    setPasteProblem(null);
     setOwnPicture(file);
     setOwnPreview(file ? URL.createObjectURL(file) : null);
+  }
+  usePastedPicture(choosePicture);
+
+  async function pastePicture() {
+    try {
+      const file = await pictureFromClipboard();
+      if (file) choosePicture(file);
+      else setPasteProblem(NO_PICTURE_ON_CLIPBOARD);
+    } catch {
+      setPasteProblem(NO_PICTURE_ON_CLIPBOARD);
+    }
   }
   const create = useMutation({
     mutationFn: async () => {
@@ -52,7 +67,7 @@ export function NewExpressionPage() {
   }
 
   const onlyLinks = withoutLinks(description) === "";
-  let pictureHint = "On a phone this opens the camera or your photos.";
+  let pictureHint = "Add one from your photos, or copy a picture anywhere and paste it here.";
   if (!ownPreview && linkPicture) pictureHint = "The picture from the link is used unless you add your own.";
   else if (!ownPreview && links.length > 0) pictureHint = "Leave it empty and the picture is taken from the link, if the shop allows it.";
 
@@ -81,9 +96,12 @@ export function NewExpressionPage() {
               <span className="muted small">none yet</span>
             )}
             <label className="button">
-              {ownPreview ? "Choose another" : linkPicture ? "Use my own picture" : "Add or take a picture"}
+              {ownPreview ? "Choose another" : linkPicture ? "Use my own picture" : "Add a picture"}
               <input type="file" accept="image/*" hidden onChange={(e) => choosePicture(e.target.files?.[0] ?? null)} />
             </label>
+            <button type="button" onClick={pastePicture}>
+              Paste a picture
+            </button>
             {ownPreview && (
               <button type="button" className="link" onClick={() => choosePicture(null)}>
                 Remove
@@ -91,6 +109,11 @@ export function NewExpressionPage() {
             )}
           </div>
           <span className="field-hint">{pictureHint}</span>
+          {pasteProblem && (
+            <p className="error" role="alert">
+              {pasteProblem}
+            </p>
+          )}
         </div>
         <Field label="By date" hint="Optional: when you would like to have it">
           <input type="date" value={wantedBy} onChange={(e) => setWantedBy(e.target.value)} />

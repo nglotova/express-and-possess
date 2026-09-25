@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NewExpressionPage } from "./NewExpressionPage";
@@ -47,5 +47,29 @@ describe("New wish", () => {
 
     expect(screen.getByLabelText(/^Description/)).toHaveValue(`${TITLE}\n${PAN}`);
     expect(screen.queryByRole("button", { name: "Add this title to the description" })).not.toBeInTheDocument();
+  });
+
+  it("takes a picture from the clipboard, by the button or by pasting, and says so when there is none", async () => {
+    // jsdom has no object URLs.
+    Object.assign(URL, { createObjectURL: () => "blob:pasted", revokeObjectURL: () => {} });
+    renderPage();
+    const picture = new Blob(["png"], { type: "image/png" });
+    const read = vi.fn().mockResolvedValueOnce([]).mockResolvedValueOnce([
+      { types: ["text/html", "image/png"], getType: () => Promise.resolve(picture) },
+    ]);
+    Object.defineProperty(navigator, "clipboard", { value: { read }, configurable: true });
+
+    fireEvent.click(screen.getByRole("button", { name: "Paste a picture" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("There is no picture on the clipboard");
+
+    fireEvent.click(screen.getByRole("button", { name: "Paste a picture" }));
+    await waitFor(() => expect(document.querySelector('img[src="blob:pasted"]')).not.toBeNull());
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByText("Choose another")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+    const file = new File(["png"], "copied.png", { type: "image/png" });
+    fireEvent.paste(document, { clipboardData: { files: [file] } });
+    await waitFor(() => expect(document.querySelector('img[src="blob:pasted"]')).not.toBeNull());
   });
 });

@@ -35,6 +35,20 @@ class NotificationsTest extends ApiTest {
     }
 
     @Test
+    void aWishThatIsOnlyALinkIsNamedAfterTheShop() throws Exception {
+        Member natasha = register("Natasha");
+        Member andrei = register("Andrei");
+        long group = family(natasha, andrei);
+        postAs(andrei, "/api/notifications/read-all");
+
+        postAs(natasha, "/api/groups/" + group + "/expressions",
+                Map.of("description", "https://www.amazon.ca/Laneige-2019-Renewal-Sleeping-Berry/dp/B07XXDNZJ9?th=1"));
+
+        getAs(andrei, "/api/notifications")
+                .andExpect(jsonPath("$.items[0].message").value("Natasha expressed a wish: \"amazon.ca link\""));
+    }
+
+    @Test
     void theCreatorHearsAboutTakeCareProvidedAndRelease() throws Exception {
         Member natasha = register("Natasha");
         Member andrei = register("Andrei");
