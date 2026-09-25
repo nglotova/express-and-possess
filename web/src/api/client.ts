@@ -54,8 +54,7 @@ export async function api<T>(path: string, method: Method = "GET", body?: unknow
     }
     throw new ApiError(response.status, detail);
   }
-  if (response.status === 204) {
-    return undefined as T;
-  }
-  return (await response.json()) as T;
+  // 202 Accepted and 204 No Content arrive without a body.
+  const text = await response.text();
+  return (text ? JSON.parse(text) : undefined) as T;
 }

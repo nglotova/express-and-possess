@@ -41,8 +41,10 @@ describe("api client", () => {
     );
   });
 
-  it("returns undefined for 204", async () => {
+  it("returns undefined for a success without a body, whether 204 or 202", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation(() => respond(204));
     await expect(api("/api/auth/logout", "POST")).resolves.toBeUndefined();
+    vi.spyOn(globalThis, "fetch").mockImplementation(() => respond(202));
+    await expect(api("/api/auth/password-reset/request", "POST", { email: "a@b.ca" })).resolves.toBeUndefined();
   });
 });
