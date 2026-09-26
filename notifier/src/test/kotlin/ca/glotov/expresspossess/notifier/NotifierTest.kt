@@ -49,12 +49,13 @@ class NotifierTest {
     lateinit var mailpit: GenericContainer<*>
 
     @Test
-    fun `a message on the topic is emailed to recipients who want email`() {
+    fun `a message on the topic is emailed to recipients who want email, with the shop link`() {
         val payload = """
             {"type":"WISH_TAKEN",
              "message":"Andrei took care of your wish \"Running shoes\"",
              "link":"http://localhost:5173/expressions/7",
              "groupId":1,"expressionId":7,
+             "shopLink":"https://shop.example/shoes?size=39",
              "recipients":[
                {"userId":1,"name":"Natasha","email":"natasha@example.com","emailEnabled":true},
                {"userId":2,"name":"Lev","email":"lev@example.com","emailEnabled":false}
@@ -70,6 +71,11 @@ class NotifierTest {
             assertThat(to).containsExactly("natasha@example.com")
             val subject = messages["messages"][0]["Subject"].asText()
             assertThat(subject).isEqualTo("Express & Possess: Andrei took care of your wish \"Running shoes\"")
+            val id = messages["messages"][0]["ID"].asText()
+            val text = api.get().uri("/api/v1/message/$id").retrieve().body(JsonNode::class.java)!!["Text"].asText()
+            // Email lines end in CR LF, so each line is checked on its own.
+            assertThat(text.lines()).contains(
+                "The wish: http://localhost:5173/expressions/7", "In the shop: https://shop.example/shoes?size=39")
         }
     }
 }

@@ -21,11 +21,15 @@ class EmailChannel(private val mail: JavaMailSender, private val properties: Not
                         |
                         |${notification.message}
                         |
-                        |${notification.link}
+                        |${links(notification)}
                         |
                         |You can switch these emails off on your profile page.
                         |""".trimMargin()
                 })
             }
     }
+
+    /** The link into the app and, for a wish with a shop link, that link too, spelled out in full. */
+    private fun links(notification: NotificationMessage): String =
+        notification.shopLink?.let { "The wish: ${notification.link}\nIn the shop: $it" } ?: notification.link
 }

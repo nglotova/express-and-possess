@@ -38,10 +38,16 @@ public class NotificationService {
 
     public void notify(NotificationType type, Collection<Long> recipientIds, String message,
                        Long groupId, Long expressionId) {
+        notify(type, recipientIds, message, groupId, expressionId, null);
+    }
+
+    /** @param shopLink the wish's shop link, which the email shows next to the link to the wish */
+    public void notify(NotificationType type, Collection<Long> recipientIds, String message,
+                       Long groupId, Long expressionId, String shopLink) {
         String link = expressionId != null
                 ? properties.baseUrl() + "/expressions/" + expressionId
                 : properties.baseUrl() + "/groups/" + groupId;
-        deliver(type, recipientIds, message, groupId, expressionId, link,
+        deliver(type, recipientIds, message, groupId, expressionId, link, shopLink,
                 expressionId != null ? "expression" : "group", expressionId != null ? expressionId : groupId);
     }
 
@@ -53,11 +59,11 @@ public class NotificationService {
      */
     public void notifyAdministrators(NotificationType type, Collection<Long> administratorIds, String message,
                                      Long sourceId) {
-        deliver(type, administratorIds, message, null, null, properties.baseUrl() + "/admin", "site", sourceId);
+        deliver(type, administratorIds, message, null, null, properties.baseUrl() + "/admin", null, "site", sourceId);
     }
 
     private void deliver(NotificationType type, Collection<Long> recipientIds, String message, Long groupId,
-                         Long expressionId, String link, String aggregateType, Long aggregateId) {
+                         Long expressionId, String link, String shopLink, String aggregateType, Long aggregateId) {
         List<User> recipients = accounts.getAll(recipientIds);
         if (recipients.isEmpty()) {
             return;
@@ -66,7 +72,7 @@ public class NotificationService {
             notifications.save(new Notification(user.getId(), type, groupId, expressionId, message));
         }
         outbox.add(aggregateType, aggregateId, type.name(),
-                new NotificationMessage(type, message, link, groupId, expressionId,
+                new NotificationMessage(type, message, link, groupId, expressionId, shopLink,
                         recipients.stream().map(u -> new NotificationMessage.Recipient(
                                 u.getId(), u.getName(), u.getEmail(), u.isEmailEnabled())).toList()));
     }

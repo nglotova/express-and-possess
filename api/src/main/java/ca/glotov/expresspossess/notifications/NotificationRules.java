@@ -94,7 +94,8 @@ class NotificationRules {
     }
 
     private void send(NotificationType type, ExpressionQueries.Facts wish, List<Long> recipients, String message) {
-        notifications.notify(type, new ArrayList<>(recipients), message, wish.groupId(), wish.id());
+        notifications.notify(type, new ArrayList<>(recipients), message, wish.groupId(), wish.id(),
+                Links.first(wish.description()));
     }
 
     /**

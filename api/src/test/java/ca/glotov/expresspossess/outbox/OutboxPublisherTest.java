@@ -36,13 +36,13 @@ class OutboxPublisherTest extends ApiTest {
     OutboxEventRepository outbox;
 
     @Test
-    void aWishTakenBecomesAKafkaMessageWithItsRecipients() throws Exception {
+    void aWishTakenBecomesAKafkaMessageWithItsRecipientsAndShopLink() throws Exception {
         Member natasha = register("Natasha");
         Member andrei = register("Andrei");
         long group = bodyOf(postAs(natasha, "/api/groups", Map.of("name", "Family"))).get("id").asLong();
         postAs(natasha, "/api/groups/" + group + "/invitations", Map.of("email", andrei.email()));
         long id = bodyOf(postAs(natasha, "/api/groups/" + group + "/expressions",
-                Map.of("description", "Running shoes"))).get("id").asLong();
+                Map.of("description", "Running shoes https://shop.example/shoes?size=39"))).get("id").asLong();
 
         try (Consumer<String, String> consumer = consumer()) {
             consumer.subscribe(List.of("notifications"));
@@ -63,6 +63,7 @@ class OutboxPublisherTest extends ApiTest {
             assertThat(payload.get("type").asText()).isEqualTo("WISH_TAKEN");
             assertThat(payload.get("message").asText()).isEqualTo("Andrei took care of your wish \"Running shoes\"");
             assertThat(payload.get("link").asText()).endsWith("/expressions/" + id);
+            assertThat(payload.get("shopLink").asText()).isEqualTo("https://shop.example/shoes?size=39");
             assertThat(payload.get("recipients")).hasSize(1);
             assertThat(payload.get("recipients").get(0).get("email").asText()).isEqualTo(natasha.email());
             assertThat(payload.get("recipients").get(0).get("emailEnabled").asBoolean()).isTrue();

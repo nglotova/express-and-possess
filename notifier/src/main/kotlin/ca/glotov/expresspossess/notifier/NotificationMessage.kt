@@ -11,6 +11,8 @@ data class NotificationMessage(
     val groupId: Long?,
     val expressionId: Long?,
     val recipients: List<Recipient>,
+    /** The first link in the wish's description; absent in messages about groups and in older messages. */
+    val shopLink: String? = null,
 ) {
     data class Recipient(val userId: Long, val name: String, val email: String, val emailEnabled: Boolean)
 }
