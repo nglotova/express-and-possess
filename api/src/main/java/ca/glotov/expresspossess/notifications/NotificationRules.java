@@ -99,13 +99,14 @@ class NotificationRules {
 
     /**
      * The wish's first line without its links. A wish that is nothing but a link is named after
-     * the shop: a cut-off address would look like a broken link in an email.
+     * the shop, "Amazon link": a cut-off address, or even "amazon.ca", would turn into a wrong
+     * link in an email.
      */
     private static String quote(String description) {
         String text = Links.withoutLinks(description);
         String link = Links.first(description);
         String firstLine = !text.isEmpty() ? text.lines().findFirst().orElseThrow()
-                : link != null ? Links.site(link) + " link"
+                : link != null ? Links.shopName(link) + " link"
                 : description.strip();
         return "\"" + (firstLine.length() > 60 ? firstLine.substring(0, 57) + "..." : firstLine) + "\"";
     }

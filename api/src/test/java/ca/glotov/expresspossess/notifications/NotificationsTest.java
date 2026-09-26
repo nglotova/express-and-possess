@@ -45,7 +45,7 @@ class NotificationsTest extends ApiTest {
                 Map.of("description", "https://www.amazon.ca/Laneige-2019-Renewal-Sleeping-Berry/dp/B07XXDNZJ9?th=1"));
 
         getAs(andrei, "/api/notifications")
-                .andExpect(jsonPath("$.items[0].message").value("Natasha expressed a wish: \"amazon.ca link\""));
+                .andExpect(jsonPath("$.items[0].message").value("Natasha expressed a wish: \"Amazon link\""));
     }
 
     @Test

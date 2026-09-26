@@ -31,4 +31,12 @@ class LinksTest {
         assertThat(Links.site("https://www.amazon.ca/dp/B07XXDNZJ9")).isEqualTo("amazon.ca");
         assertThat(Links.site("https://shop.two/b")).isEqualTo("shop.two");
     }
+
+    @Test
+    void theShopsNameWithoutTheEndingThatMailProgramsWouldTurnIntoALink() {
+        assertThat(Links.shopName("https://www.amazon.ca/dp/B07XXDNZJ9")).isEqualTo("Amazon");
+        assertThat(Links.shopName("https://www.sephora.com/ca/en/product/p428819")).isEqualTo("Sephora");
+        assertThat(Links.shopName("https://www.shop.co.uk/item")).isEqualTo("Shop");
+        assertThat(Links.shopName("https://smile.amazon.ca/dp/1")).isEqualTo("Amazon");
+    }
 }

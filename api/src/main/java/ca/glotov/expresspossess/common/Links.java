@@ -64,6 +64,21 @@ public final class Links {
         }
     }
 
+        /**
+     * The shop's name for use in text, "Amazon" for amazon.ca: without the ending, which mail
+     * programs would turn into a link to the shop's front page. Short second-level parts such
+     * as the "co" in shop.co.uk are skipped.
+     */
+    public static String shopName(String url) {
+        String[] parts = site(url).split("\\.");
+        int at = parts.length - 2;
+        if (at > 0 && parts[at].length() <= 3 && parts.length >= 3) {
+            at--;
+        }
+        String name = at >= 0 ? parts[at] : parts[0];
+        return name.isEmpty() ? url : Character.toUpperCase(name.charAt(0)) + name.substring(1);
+    }
+
         private static String trimTrailing(String url) {
         int end = url.length();
         while (end > 0 && TRAILING.indexOf(url.charAt(end - 1)) >= 0) {
