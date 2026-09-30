@@ -10,15 +10,17 @@ export default defineConfig({
       registerType: "autoUpdate",
       manifest: {
         name: "Express & Possess",
-        short_name: "Express",
+        short_name: "E&P",
         description: "Wish lists for a group: express a wish, let someone take care of it.",
         theme_color: "#0e7c80",
         background_color: "#eef9f8",
         display: "standalone",
         start_url: "/",
+        // Drawn in public/icons/app-icon.svg (full square) and favicon.svg (rounded corners).
         icons: [
           { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-          { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
+          { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+          { src: "/icons/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
         ],
       },
       workbox: {

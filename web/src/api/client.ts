@@ -43,7 +43,8 @@ export async function api<T>(path: string, method: Method = "GET", body?: unknow
     body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
   });
   if (!response.ok) {
-    let detail = response.statusText;
+    // Over HTTP/2 the status text is always empty, so it is only a fallback.
+    let detail = response.statusText || "Something went wrong. Try again.";
     try {
       const problem = await response.json();
       if (typeof problem?.detail === "string") {

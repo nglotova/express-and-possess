@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -95,9 +96,10 @@ public class AuthController {
         accounts.confirmPasswordReset(body.token(), body.newPassword());
     }
 
+    /** One message for a wrong email and a wrong password, so the answer does not reveal which accounts exist. */
     @ExceptionHandler(AuthenticationException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    void badCredentials() {
+    ProblemDetail badCredentials() {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Wrong email or password.");
     }
 
     private AuthenticatedUser logIn(String email, String password,

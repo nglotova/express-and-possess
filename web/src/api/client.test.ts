@@ -47,4 +47,9 @@ describe("api client", () => {
     vi.spyOn(globalThis, "fetch").mockImplementation(() => respond(202));
     await expect(api("/api/auth/password-reset/request", "POST", { email: "a@b.ca" })).resolves.toBeUndefined();
   });
+
+  it("never reports an empty error, even when the status text is empty as over HTTP/2", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation(() => Promise.resolve(new Response(null, { status: 401, statusText: "" })));
+    await expect(api("/api/auth/login", "POST", {})).rejects.toMatchObject(new ApiError(401, "Something went wrong. Try again."));
+  });
 });

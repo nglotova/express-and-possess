@@ -97,7 +97,13 @@ class AccountsTest {
         mvc.perform(post("/api/auth/login").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson(email, "wrong")))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.detail").value("Wrong email or password."));
+        mvc.perform(post("/api/auth/login").with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson("nobody-" + email, "Correct-horse-battery-1")))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.detail").value("Wrong email or password."));
 
         mvc.perform(post("/api/auth/login").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)

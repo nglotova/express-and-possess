@@ -3,6 +3,7 @@ import type { ExpressionView } from "../api/types";
 import { StatusChip } from "./StatusChip";
 import { formatDate } from "./format";
 import { findLinks, labelLinks, withoutLinks } from "./links";
+import { GiftIcon } from "./GiftIcon";
 
 /**
  * One row of a wish list. The text opens the wish; each web address found in the
@@ -20,7 +21,7 @@ export function ExpressionRow({ expression, showCreator }: { expression: Express
   return (
     <div className="row">
       <Link to={to} className="thumb" aria-hidden="true" tabIndex={-1}>
-        {expression.pictureUrl ? <img src={expression.pictureUrl} alt="" /> : <span>🎁</span>}
+        {expression.pictureUrl ? <img src={expression.pictureUrl} alt="" /> : <GiftIcon />}
       </Link>
       <div className="row-body">
         <Link to={to} className="row-title">

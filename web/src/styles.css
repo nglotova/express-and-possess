@@ -336,6 +336,11 @@ a.thumb {
   object-fit: cover;
 }
 
+.gift-icon {
+  width: 72%;
+  height: 72%;
+}
+
 .bang {
   color: var(--bang);
   font-weight: 800;
