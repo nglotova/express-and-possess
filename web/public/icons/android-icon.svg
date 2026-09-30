@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- The letter with room for the circle or rounded shape that Android launchers cut out; used for all icons in the manifest. -->
+  <rect width="512" height="512" rx="0" fill="#eef9f8"/>
+  <g transform="translate(256 256) scale(0.64) translate(-256 -256)"><g fill="#0e7c80"><rect x="32" y="24" width="92" height="464"/><rect x="32" y="24" width="322" height="92"/><rect x="32" y="196" width="322" height="92"/><path d="M348 24 A132 132 0 0 1 348 288 L348 196 A40 40 0 0 0 348 116 Z"/><rect x="32" y="396" width="400" height="92"/></g><path transform="translate(278,330) scale(2.8)" d="M0 -12 C-6 -26 -30 -24 -30 -4 C-30 12 -10 22 0 32 C10 22 30 12 30 -4 C30 -24 6 -26 0 -12 Z" fill="#d62839" stroke="#eef9f8" stroke-width="5" stroke-linejoin="round" paint-order="stroke"/></g>
+</svg>

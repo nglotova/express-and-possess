@@ -16,7 +16,7 @@ export default defineConfig({
         background_color: "#eef9f8",
         display: "standalone",
         start_url: "/",
-        // Drawn in public/icons/app-icon.svg (full square) and favicon.svg (rounded corners).
+        // Rendered from public/icons/android-icon.svg: the letter with room for the circle Android launchers cut out.
         icons: [
           { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
           { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
