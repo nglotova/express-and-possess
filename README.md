@@ -3,6 +3,14 @@
 A shared wish list for a group of people. Members say what they want, and the others help make it
 happen.
 
+**Try it:** [demo.expresspossess.glotov.ca](https://demo.expresspossess.glotov.ca), with no sign-up:
+press "Log in as Alice", Bob or Carol. The demo's emails arrive in its own inbox,
+[mail.demo.expresspossess.glotov.ca](https://mail.demo.expresspossess.glotov.ca), and everything resets
+every night.
+
+**Use it:** [expresspossess.glotov.ca](https://expresspossess.glotov.ca) is the live site; anyone can
+register and start a group. On a phone it installs to the home screen like an app.
+
 <p>
   <img src="docs/screenshots/group.png" width="250" alt="A group's page: my wishes, the ones I am taking care of, and the ones nobody has taken yet">
   <img src="docs/screenshots/take-care.png" width="250" alt="A wish nobody has taken yet, with the button I'll take care of it and an Incognito option">
@@ -75,10 +83,13 @@ one winner.
 
 ## The demo
 
-The same stack runs twice on one server: the main site, where anyone can register and
-groups stay private to their members, and a public demo seeded with a fictional family. The demo's login page has "Log in as Alice / Bob / Carol"
-buttons, its emails land in a Mailpit inbox reviewers can open, and everything is wiped
-and reseeded every night. Deployment: [docs/deploy.md](docs/deploy.md).
+The same stack runs twice on one server: the main site
+([expresspossess.glotov.ca](https://expresspossess.glotov.ca)), where anyone can register and groups
+stay private to their members, and a public demo
+([demo.expresspossess.glotov.ca](https://demo.expresspossess.glotov.ca)) seeded with a fictional
+family. The demo's login page has "Log in as Alice / Bob / Carol" buttons, its emails land in a
+Mailpit inbox reviewers can open, and everything is wiped and reseeded every night. Both run on an
+Oracle Cloud server behind Caddy. Deployment: [docs/deploy.md](docs/deploy.md).
 
 To run the demo mode locally, start the API with `APP_DEMO_ENABLED=true`.
 
