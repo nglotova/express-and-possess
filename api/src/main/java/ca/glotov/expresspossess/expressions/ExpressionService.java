@@ -67,7 +67,7 @@ public class ExpressionService {
     public ActivityView activity(Long groupId, Long viewerId) {
         groups.memberOf(groupId, viewerId);
         String groupName = groups.get(groupId, viewerId).name();
-        Viewer viewer = viewer(viewerId);
+        Viewer viewer = viewer(viewerId, groupId);
         return new ActivityView(groupId, groupName,
                 rows(expressions.findByGroupIdAndCreatorIdOrderByCreatedAtDesc(groupId, viewerId), viewer),
                 rows(expressions.findByGroupIdAndImplementerIdOrderByCreatedAtDesc(groupId, viewerId), viewer),
@@ -78,13 +78,13 @@ public class ExpressionService {
     @Transactional(readOnly = true)
     public List<ExpressionView> listByCreator(Long groupId, Long creatorId, Long viewerId) {
         groups.memberOf(groupId, viewerId);
-        return rows(expressions.findByGroupIdAndCreatorIdOrderByCreatedAtDesc(groupId, creatorId), viewer(viewerId));
+        return rows(expressions.findByGroupIdAndCreatorIdOrderByCreatedAtDesc(groupId, creatorId), viewer(viewerId, groupId));
     }
 
     @Transactional(readOnly = true)
     public ExpressionView get(Long id, Long viewerId) {
         Expression expression = visible(id, viewerId);
-        return view(expression, viewer(viewerId), comments.findByExpressionIdOrderByCreatedAt(id));
+        return view(expression, viewer(viewerId, expression.getGroupId()), comments.findByExpressionIdOrderByCreatedAt(id));
     }
 
     // ---- the creator's section -----------------------------------------------------
@@ -223,34 +223,91 @@ public class ExpressionService {
     public ExpressionView adminGet(Long id) {
         Expression expression = expressions.findById(id)
                 .orElseThrow(() -> ApiException.notFound("No such expression"));
-        return view(expression, new Viewer(null, true), comments.findByExpressionIdOrderByCreatedAt(id));
+        return view(expression, new Viewer(null, true, false), comments.findByExpressionIdOrderByCreatedAt(id));
     }
 
     @Transactional(readOnly = true)
     public List<ExpressionView> adminListInGroup(Long groupId) {
-        return rows(expressions.findByGroupIdOrderByCreatedAtDesc(groupId), new Viewer(null, true));
+        return rows(expressions.findByGroupIdOrderByCreatedAtDesc(groupId), new Viewer(null, true, false));
     }
 
+    // ---- managing a wish: the site administrator anywhere, the group admin in their group
+
     /**
-     * Forces a stuck expression into a status. Going back to Expressed clears the
-     * implementer; any other status needs one, because the schema forbids an implemented
-     * wish without an implementer. The reason is written as a system note for everyone.
+     * Sets any status, whatever the wish's state; for a member who left, a gift bought outside
+     * the app, or anything else the usual buttons cannot reach. Going back to Expressed clears
+     * the provider. Going forward from Expressed needs one: a member of the group, chosen by the
+     * admin. The reason is written as a system note for everyone and sent to those concerned.
      */
-    public ExpressionView forceStatus(Long id, Long adminId, ExpressionStatus status, String reason) {
-        Expression expression = expressions.findById(id)
-                .orElseThrow(() -> ApiException.notFound("No such expression"));
+    public ExpressionView manageStatus(Long id, Long managerId, ExpressionStatus status, Long providerId,
+                                       String reason) {
+        Expression expression = manageable(id, managerId);
+        if (expression.is(status)) {
+            throw ApiException.conflict("The wish is already " + status.label());
+        }
+        Long formerProvider = expression.getImplementerId();
+        String chosen = "";
         if (status == EXPRESSED) {
             expression.release();
+        } else if (formerProvider == null) {
+            requireProvider(expression, providerId);
+            expression.assignProvider(providerId);
+            expression.forceStatus(status);
+            chosen = ", provided by " + nameOf(providerId);
+        } else if (providerId != null && !providerId.equals(formerProvider)) {
+            throw ApiException.conflict("Someone already provides this wish; set it to Expressed first");
         } else {
-            if (expression.getImplementerId() == null) {
-                throw ApiException.conflict("Nobody is taking care of this wish; set it to Expressed instead");
-            }
             expression.forceStatus(status);
         }
-        String admin = users.findById(adminId).map(User::getName).orElse("An administrator");
-        comments.save(Comment.systemNote(id, admin + " set the status to " + status + ": " + reason.trim()));
+        comments.save(Comment.systemNote(id,
+                nameOf(managerId) + " set the status to " + status.label() + chosen + ": " + reason.trim()));
+        events.publishEvent(new ExpressionChanged(ExpressionChanged.Type.STATUS_SET, id, expression.getGroupId(),
+                managerId, formerProvider, reason.trim()));
         expressions.flush();
-        return adminGet(id);
+        return managerView(expression, managerId);
+    }
+
+    /** Deletes the wish whatever its state, telling its creator and provider why. */
+    public void manageDelete(Long id, Long managerId, String reason) {
+        Expression expression = manageable(id, managerId);
+        events.publishEvent(new ExpressionChanged(ExpressionChanged.Type.REMOVED_BY_ADMIN, id, expression.getGroupId(),
+                managerId, expression.getImplementerId(), reason.trim()));
+        expressions.delete(expression);
+    }
+
+    /** The site administrator may manage any wish; the group admin only those in their open group. */
+    private Expression manageable(Long id, Long userId) {
+        Expression expression = expressions.findById(id)
+                .orElseThrow(() -> ApiException.notFound("No such expression"));
+        if (!isSystemAdmin(userId)) {
+            groups.memberOf(expression.getGroupId(), userId);
+            if (!groups.managesWishes(expression.getGroupId(), userId)) {
+                throw ApiException.forbidden("Only the group admin can do this, while the group is open");
+            }
+        }
+        return expression;
+    }
+
+    private void requireProvider(Expression expression, Long providerId) {
+        if (providerId == null) {
+            throw ApiException.badRequest("Choose who provides the wish");
+        }
+        if (expression.isCreator(providerId)) {
+            throw ApiException.badRequest("The wish's creator cannot provide it");
+        }
+        if (!groups.memberIds(expression.getGroupId()).contains(providerId)) {
+            throw ApiException.badRequest("The provider must be a member of the group");
+        }
+    }
+
+    /** The page the admin is on: the wish page for a member, the administration page otherwise. */
+    private ExpressionView managerView(Expression expression, Long managerId) {
+        boolean member = groups.memberIds(expression.getGroupId()).contains(managerId);
+        return member ? get(expression.getId(), managerId) : adminGet(expression.getId());
+    }
+
+    private String nameOf(Long userId) {
+        return users.findById(userId).map(User::getName).orElse("An administrator");
     }
 
     /**
@@ -281,12 +338,16 @@ public class ExpressionService {
         return get(id, userId);
     }
 
-    private record Viewer(Long id, boolean systemAdmin) {
+    /** @param groupManager the admin of the open group the wishes are in */
+    private record Viewer(Long id, boolean systemAdmin, boolean groupManager) {
     }
 
-    private Viewer viewer(Long userId) {
-        boolean admin = users.findById(userId).map(u -> u.getRole() == Role.ADMIN).orElse(false);
-        return new Viewer(userId, admin);
+    private Viewer viewer(Long userId, Long groupId) {
+        return new Viewer(userId, isSystemAdmin(userId), groups.managesWishes(groupId, userId));
+    }
+
+    private boolean isSystemAdmin(Long userId) {
+        return users.findById(userId).map(u -> u.getRole() == Role.ADMIN).orElse(false);
     }
 
     private List<ExpressionView> rows(List<Expression> list, Viewer viewer) {
@@ -330,6 +391,7 @@ public class ExpressionService {
                 open && implementing && e.is(IN_PROCESS),
                 open && creator && !e.is(PROVIDED),
                 open && creator && e.is(PROVIDED),
+                viewer.systemAdmin() || viewer.groupManager(),
                 open,
                 commentList.stream().map(c -> new CommentView(
                         c.getId(),

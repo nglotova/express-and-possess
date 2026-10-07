@@ -288,7 +288,7 @@
   <h3>People</h3>
   <ul>
     <li><strong>Member</strong>: any registered user who belongs to at least one group.</li>
-    <li><strong>Group admin</strong>: the member who created the group. The only person who can edit the group, invite and remove members, close, archive, or delete it.</li>
+    <li><strong>Group admin</strong>: the member who created the group. The only person who can edit the group, invite and remove members, close, archive, or delete it. While the group is open, the group admin can also set any status on any wish in it, or delete the wish, with a reason; a hidden implementer stays hidden from them.</li>
     <li><strong>Creator</strong> of an expression: the member who wrote the wish.</li>
     <li><strong>Implementer</strong>: the member who took care of the wish. An expression has at most one implementer at a time.</li>
     <li><strong>System administrator</strong>: a user whose account carries the <code>ADMIN</code> role. Sees the administration page. Ordinary members never see it.</li>
@@ -688,7 +688,7 @@
   <ul>
     <li><strong>Users</strong>: list, search, disable an account, grant or revoke the administrator role. Adding users is done through invitations like everyone else.</li>
     <li><strong>Groups</strong>: list including archived ones, open any group read-only, restore an archived group, delete a group.</li>
-    <li><strong>Stuck expressions</strong>: force the status of any expression to any value, with a mandatory reason that is written to the expression's comments as a system note.</li>
+    <li><strong>Expressions</strong>: set any expression to any status, or delete it, with a mandatory reason. The reason is written to the expression's comments as a system note and sent to the creator and the implementer. Moving a wish on from Expressed when nobody took care of it needs an implementer, chosen from the group's members: for example a gift bought without pressing Take Care. The group admin has the same controls on the expression page, for the wishes in their group.</li>
   </ul>
   <div class="decision">
     <span class="tag">Decision: an ordinary account with a role, not a special login</span>
@@ -703,7 +703,8 @@
     <tr><td>Take Care, Release, Provided</td><td>the creator</td></tr>
     <tr><td>Got it</td><td>the implementer</td></tr>
     <tr><td>Expression deleted while In Process</td><td>the implementer</td></tr>
-    <tr><td>New comment</td><td>the creator and the implementer, whichever did not write it</td></tr>
+    <tr><td>New comment</td><td>the creator, the implementer and everyone who commented before, except the comment's author</td></tr>
+    <tr><td>Status set or expression deleted by an administrator or the group admin</td><td>the creator, the implementer and the previous implementer, with the reason</td></tr>
     <tr><td>Invited to a group, removed from a group, group closed</td><td>the member concerned, or all members</td></tr>
   </table></div>
   <p>Notifications are delivered through channels the member can switch on in their profile:</p>

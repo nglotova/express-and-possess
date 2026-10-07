@@ -197,6 +197,13 @@ public class Expression {
         touch();
     }
 
+    /** An admin names who provides a wish nobody had taken. */
+    void assignProvider(Long implementerId) {
+        this.implementerId = implementerId;
+        this.incognito = false;
+        touch();
+    }
+
     void forceStatus(ExpressionStatus status) {
         this.status = status;
         touch();

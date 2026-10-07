@@ -169,7 +169,8 @@ Each move between them is one method in `ExpressionService`:
 | Mark provided | Provided | The helper | `editCare` with provided |
 | Mark received | In Possession | The creator | `markReceived` |
 | Delete | (gone) | The creator | `delete` |
-| Force a stage | Any | Site administrator | `forceStatus` |
+| Set any stage, with a reason | Any | Site administrator; group admin in an open group | `manageStatus` |
+| Delete whatever the stage, with a reason | (gone) | Site administrator; group admin in an open group | `manageDelete` |
 
 The pages involved:
 
@@ -181,6 +182,8 @@ The pages involved:
 - [`ConfirmDialog.tsx`](../web/src/components/ConfirmDialog.tsx): the "Are you sure?" box used before
   deleting, releasing, removing or closing.
 - [`StatusChip.tsx`](../web/src/components/StatusChip.tsx): the coloured stage labels.
+- [`ManageWish.tsx`](../web/src/components/ManageWish.tsx): the admin's stage and delete controls, shown
+  on the Administration page and, for the group admin, at the bottom of `ExpressionPage.tsx`.
 
 Who sees what is decided on the server, in the part of `ExpressionService` that builds an
 [`ExpressionView`](../api/src/main/java/ca/glotov/expresspossess/expressions/ExpressionView.java). The
@@ -195,8 +198,10 @@ it: the second save is refused rather than silently overwriting the first.
 ### Comments
 
 Written on `ExpressionPage.tsx`, saved by `ExpressionService.comment` into the
-[`Comment`](../api/src/main/java/ca/glotov/expresspossess/expressions/Comment.java) table. When a site
-administrator forces a stage, `forceStatus` adds a note with the reason to the same list (`systemNote`).
+[`Comment`](../api/src/main/java/ca/glotov/expresspossess/expressions/Comment.java) table. When an
+administrator or the group admin sets a stage, `manageStatus` adds a note with the reason to the same
+list (`systemNote`). Links in a comment are shown as links by `LinkedText` in
+[`links.tsx`](../web/src/components/links.tsx).
 
 ### Pictures and links
 
@@ -235,7 +240,8 @@ the messages wait in Kafka and are sent when it starts.
 [`AdminPage.tsx`](../web/src/pages/AdminPage.tsx) and
 [`AdminController.java`](../api/src/main/java/ca/glotov/expresspossess/admin/AdminController.java).
 `SecurityConfig` lets only site administrators reach `/api/admin`. The controller uses
-`AccountService`, `GroupService` (`restore`, `adminDelete`) and `ExpressionService.forceStatus`.
+`AccountService`, `GroupService` (`restore`, `adminDelete`) and `ExpressionService.adminGet`. Setting a
+stage and deleting a wish go through `/api/expressions/{id}/manage`, which the group admin uses too.
 
 Site settings, for now the number of invitation emails one member may send in 24 hours, are one row
 in the `site_settings` table, read and changed through

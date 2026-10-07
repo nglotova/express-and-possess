@@ -757,14 +757,10 @@ button.link.danger {
   gap: 0.75rem;
 }
 
-.force-status {
+.admin-wish {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-}
-
-.inline-form.three {
-  grid-template-columns: auto 1fr auto;
 }
 
 select {

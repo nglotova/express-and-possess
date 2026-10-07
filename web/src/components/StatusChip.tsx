@@ -1,6 +1,6 @@
 import type { ExpressionStatus, GroupStatus } from "../api/types";
 
-const EXPRESSION_LABELS: Record<ExpressionStatus, string> = {
+export const EXPRESSION_LABELS: Record<ExpressionStatus, string> = {
   EXPRESSED: "Expressed",
   IN_PROCESS: "In Process",
   PROVIDED: "Provided",

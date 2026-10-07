@@ -75,6 +75,11 @@ class NotificationRules {
             }
             case COMMENTED -> send(NotificationType.WISH_COMMENTED, wish, commentRecipients(wish, event.actorId()),
                     (actorIsHiddenHelper ? "Anonymous helper" : actor) + " commented on " + title);
+            case STATUS_SET -> send(NotificationType.WISH_STATUS_SET, wish, concerned(wish, event),
+                    actor + " set the status of " + title + " to " + wish.status().label() + ": " + event.reason());
+            // The expression is about to disappear, so the rows must not point at it.
+            case REMOVED_BY_ADMIN -> notifications.notify(NotificationType.WISH_DELETED, concerned(wish, event),
+                    actor + " deleted the wish " + title + ": " + event.reason(), wish.groupId(), null);
         }
     }
 
@@ -106,6 +111,23 @@ class NotificationRules {
         }
         participants.addAll(expressions.commenterIds(wish.id()));
         return participants.stream().filter(members::contains).filter(id -> !id.equals(authorId)).toList();
+    }
+
+    /**
+     * Those an admin's change concerns: the wish's creator, its provider, and whoever was
+     * providing it before; not the admin, and not anyone who has left the group.
+     */
+    private List<Long> concerned(ExpressionQueries.Facts wish, ExpressionChanged event) {
+        Set<Long> members = new HashSet<>(groups.memberIds(wish.groupId()));
+        Set<Long> concerned = new LinkedHashSet<>();
+        concerned.add(wish.creatorId());
+        if (wish.implementerId() != null) {
+            concerned.add(wish.implementerId());
+        }
+        if (event.formerImplementerId() != null) {
+            concerned.add(event.formerImplementerId());
+        }
+        return concerned.stream().filter(members::contains).filter(id -> !id.equals(event.actorId())).toList();
     }
 
     private void send(NotificationType type, ExpressionQueries.Facts wish, List<Long> recipients, String message) {

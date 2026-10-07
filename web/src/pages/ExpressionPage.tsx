@@ -14,6 +14,7 @@ import { useSettledFirstLink } from "../components/useDebounced";
 import { prepareImage } from "../components/image";
 import { NO_PICTURE_ON_CLIPBOARD, pictureFromClipboard, usePastedPicture } from "../components/clipboard";
 import { useConfirm } from "../components/ConfirmDialog";
+import { ManageWish } from "../components/ManageWish";
 
 /**
  * The expression page: the wish (creator edits), taking care (implementer edits), and the
@@ -32,6 +33,7 @@ export function ExpressionPage() {
       <WishSection expression={e} />
       <CareSection key={`${e.status}:${e.implementer?.id ?? ""}`} expression={e} />
       <Comments expression={e} />
+      {e.canManage && <ManageSection expression={e} />}
     </>
   );
 }
@@ -360,6 +362,35 @@ function Comments({ expression: e }: { expression: ExpressionView }) {
       ) : (
         <p className="muted">Comments are closed.</p>
       )}
+    </section>
+  );
+}
+
+/** The site administrator, or the group admin: any status, and delete, whatever the wish's state. */
+function ManageSection({ expression: e }: { expression: ExpressionView }) {
+  const group = useGroup(e.groupId);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  return (
+    <section className="section">
+      <h2>Admin</h2>
+      <p className="muted">
+        As an admin, you can set any status or delete this wish, for example when a member has left the group.
+      </p>
+      <ManageWish
+        key={`${e.status}:${e.implementer?.id ?? ""}`}
+        expression={e}
+        members={(group.data?.members ?? []).map((m) => ({ id: m.userId, name: m.name }))}
+        onChanged={(view) => {
+          queryClient.setQueryData(["expressions", e.id], view);
+          queryClient.invalidateQueries({ queryKey: ["groups"] });
+          queryClient.invalidateQueries({ queryKey: ["notifications"] });
+        }}
+        onDeleted={() => {
+          queryClient.invalidateQueries({ queryKey: ["groups"] });
+          navigate(`/groups/${e.groupId}`, { replace: true });
+        }}
+      />
     </section>
   );
 }

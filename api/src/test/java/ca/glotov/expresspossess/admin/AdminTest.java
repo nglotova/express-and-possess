@@ -84,7 +84,7 @@ class AdminTest extends ApiTest {
     }
 
     @Test
-    void aStuckExpressionCanBeForcedWithAReasonEveryoneCanRead() throws Exception {
+    void theAdministratorSetsAnyStatusWithAReasonEveryoneCanRead() throws Exception {
         Member admin = makeAdmin(register("Sysadmin"));
         Member natasha = register("Natasha");
         Member andrei = register("Andrei");
@@ -95,22 +95,68 @@ class AdminTest extends ApiTest {
 
         // The administrator sees the real implementer.
         getAs(admin, "/api/admin/expressions/" + id).andExpect(jsonPath("$.implementer.name").value("Andrei"));
-        getAs(admin, "/api/admin/groups/" + group).andExpect(jsonPath("$.expressions[0].implementer.name").value("Andrei"));
+        getAs(admin, "/api/admin/groups/" + group)
+                .andExpect(jsonPath("$.expressions[0].implementer.name").value("Andrei"))
+                .andExpect(jsonPath("$.expressions[0].canManage").value(true));
 
-        putAs(admin, "/api/admin/expressions/" + id + "/status", Map.of("status", "PROVIDED", "reason", "Andrei says it arrived"))
+        putAs(admin, "/api/expressions/" + id + "/manage/status", Map.of("status", "PROVIDED", "reason", "Andrei says it arrived"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PROVIDED"));
         getAs(natasha, "/api/expressions/" + id)
                 .andExpect(jsonPath("$.status").value("PROVIDED"))
+                .andExpect(jsonPath("$.canManage").value(true))
                 .andExpect(jsonPath("$.comments[0].systemNote").value(true))
-                .andExpect(jsonPath("$.comments[0].body").value("Sysadmin set the status to PROVIDED: Andrei says it arrived"));
+                .andExpect(jsonPath("$.comments[0].body").value("Sysadmin set the status to Provided: Andrei says it arrived"));
 
-        putAs(admin, "/api/admin/expressions/" + id + "/status", Map.of("status", "EXPRESSED", "reason", "Never mind"))
+        putAs(admin, "/api/expressions/" + id + "/manage/status", Map.of("status", "EXPRESSED", "reason", "Never mind"))
                 .andExpect(jsonPath("$.implementer").isEmpty());
-        putAs(admin, "/api/admin/expressions/" + id + "/status", Map.of("status", "IN_PROCESS", "reason", "Oops"))
-                .andExpect(status().isConflict());
-        putAs(admin, "/api/admin/expressions/" + id + "/status", Map.of("status", "PROVIDED", "reason", ""))
+        putAs(admin, "/api/expressions/" + id + "/manage/status", Map.of("status", "PROVIDED", "reason", ""))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void aWishNobodyTookNeedsAProviderFromTheGroupWhenMovedOn() throws Exception {
+        Member admin = makeAdmin(register("Sysadmin"));
+        Member natasha = register("Natasha");
+        Member andrei = register("Andrei");
+        Member stranger = register("Stranger");
+        long group = bodyOf(postAs(natasha, "/api/groups", Map.of("name", "Family"))).get("id").asLong();
+        postAs(natasha, "/api/groups/" + group + "/invitations", Map.of("email", andrei.email()));
+        long id = bodyOf(postAs(natasha, "/api/groups/" + group + "/expressions", Map.of("description", "Shoes"))).get("id").asLong();
+        String path = "/api/expressions/" + id + "/manage/status";
+
+        putAs(admin, path, Map.of("status", "PROVIDED", "reason", "Bought in a shop")).andExpect(status().isBadRequest());
+        putAs(admin, path, Map.of("status", "PROVIDED", "providerId", natasha.id(), "reason", "Bought in a shop"))
+                .andExpect(status().isBadRequest());
+        putAs(admin, path, Map.of("status", "PROVIDED", "providerId", stranger.id(), "reason", "Bought in a shop"))
+                .andExpect(status().isBadRequest());
+
+        putAs(admin, path, Map.of("status", "PROVIDED", "providerId", andrei.id(), "reason", "Bought in a shop"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.implementer.name").value("Andrei"));
+        getAs(natasha, "/api/expressions/" + id)
+                .andExpect(jsonPath("$.comments[0].body").value("Sysadmin set the status to Provided, provided by Andrei: Bought in a shop"));
+        for (Member concerned : new Member[] {natasha, andrei}) {
+            getAs(concerned, "/api/notifications")
+                    .andExpect(jsonPath("$.items[0].type").value("WISH_STATUS_SET"))
+                    .andExpect(jsonPath("$.items[0].message").value("Sysadmin set the status of \"Shoes\" to Provided: Bought in a shop"));
+        }
+    }
+
+    @Test
+    void theAdministratorDeletesAnyWish() throws Exception {
+        Member admin = makeAdmin(register("Sysadmin"));
+        Member natasha = register("Natasha");
+        long group = bodyOf(postAs(natasha, "/api/groups", Map.of("name", "Family"))).get("id").asLong();
+        long id = bodyOf(postAs(natasha, "/api/groups/" + group + "/expressions", Map.of("description", "Shoes"))).get("id").asLong();
+
+        postAs(admin, "/api/expressions/" + id + "/manage/delete", Map.of("reason", "")).andExpect(status().isBadRequest());
+        postAs(admin, "/api/expressions/" + id + "/manage/delete", Map.of("reason", "Posted twice"))
+                .andExpect(status().isNoContent());
+
+        getAs(natasha, "/api/expressions/" + id).andExpect(status().isNotFound());
+        getAs(natasha, "/api/notifications")
+                .andExpect(jsonPath("$.items[0].message").value("Sysadmin deleted the wish \"Shoes\": Posted twice"));
     }
 
     /** The role is read at login, so a promoted account needs a fresh session. */

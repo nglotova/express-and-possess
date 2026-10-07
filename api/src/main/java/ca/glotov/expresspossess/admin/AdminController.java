@@ -7,7 +7,6 @@ import ca.glotov.expresspossess.auth.UserResponse;
 import ca.glotov.expresspossess.contact.ContactMessageView;
 import ca.glotov.expresspossess.contact.ContactService;
 import ca.glotov.expresspossess.expressions.ExpressionService;
-import ca.glotov.expresspossess.expressions.ExpressionStatus;
 import ca.glotov.expresspossess.expressions.ExpressionView;
 import ca.glotov.expresspossess.groups.Group;
 import ca.glotov.expresspossess.groups.GroupService;
@@ -17,9 +16,7 @@ import ca.glotov.expresspossess.settings.SiteSettingsService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -106,20 +103,12 @@ class AdminController {
         groups.adminDelete(id);
     }
 
-    // ---- stuck expressions ---------------------------------------------------------
-
-    record ForceStatus(@NotNull ExpressionStatus status, @NotBlank @Size(max = 500) String reason) {
-    }
+    // ---- expressions ---------------------------------------------------------------
+    // Status changes and deletes go through /api/expressions/{id}/manage, shared with group admins.
 
     @GetMapping("/expressions/{id}")
     ExpressionView expression(@PathVariable Long id) {
         return expressions.adminGet(id);
-    }
-
-    @PutMapping("/expressions/{id}/status")
-    ExpressionView forceStatus(@AuthenticationPrincipal AuthenticatedUser me, @PathVariable Long id,
-                               @Valid @RequestBody ForceStatus body) {
-        return expressions.forceStatus(id, me.getId(), body.status(), body.reason());
     }
 
     // ---- site settings -------------------------------------------------------------

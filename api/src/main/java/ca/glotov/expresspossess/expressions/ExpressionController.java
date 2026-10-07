@@ -3,6 +3,7 @@ package ca.glotov.expresspossess.expressions;
 import ca.glotov.expresspossess.auth.AuthenticatedUser;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -46,6 +47,14 @@ class ExpressionController {
     }
 
     record TakeCareRequest(boolean incognito) {
+    }
+
+    /** The reason goes into a notification, whose message holds 500 characters in all. */
+    record ManageStatusRequest(@NotNull ExpressionStatus status, Long providerId,
+                               @NotBlank @Size(max = 280) String reason) {
+    }
+
+    record ManageDeleteRequest(@NotBlank @Size(max = 280) String reason) {
     }
 
     @GetMapping("/groups/{groupId}/activity")
@@ -116,5 +125,20 @@ class ExpressionController {
     ExpressionView comment(@AuthenticationPrincipal AuthenticatedUser me, @PathVariable Long id,
                            @Valid @RequestBody CommentRequest body) {
         return expressions.comment(id, me.getId(), body.body());
+    }
+
+    // ---- the site administrator, and the group admin in their group ---------------------
+
+    @PutMapping("/expressions/{id}/manage/status")
+    ExpressionView manageStatus(@AuthenticationPrincipal AuthenticatedUser me, @PathVariable Long id,
+                                @Valid @RequestBody ManageStatusRequest body) {
+        return expressions.manageStatus(id, me.getId(), body.status(), body.providerId(), body.reason());
+    }
+
+    @PostMapping("/expressions/{id}/manage/delete")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void manageDelete(@AuthenticationPrincipal AuthenticatedUser me, @PathVariable Long id,
+                      @Valid @RequestBody ManageDeleteRequest body) {
+        expressions.manageDelete(id, me.getId(), body.reason());
     }
 }

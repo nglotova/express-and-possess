@@ -116,6 +116,13 @@ public class GroupService {
         return groups.findById(groupId).map(Group::getName).orElse("a group");
     }
 
+    /** The group admin manages the group's wishes while the group is open. */
+    @Transactional(readOnly = true)
+    public boolean managesWishes(Long groupId, Long userId) {
+        return members.findByIdGroupIdAndIdUserId(groupId, userId).filter(GroupMember::isAdmin).isPresent()
+                && groups.findById(groupId).filter(Group::isActive).isPresent();
+    }
+
     @Transactional(readOnly = true)
     public List<Long> memberIds(Long groupId) {
         return members.findByIdGroupId(groupId).stream().map(GroupMember::getUserId).toList();

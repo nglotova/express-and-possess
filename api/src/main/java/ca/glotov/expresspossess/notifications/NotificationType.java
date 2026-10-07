@@ -8,6 +8,7 @@ public enum NotificationType {
     WISH_RECEIVED,
     WISH_DELETED,
     WISH_COMMENTED,
+    WISH_STATUS_SET,
     GROUP_ADDED,
     GROUP_REMOVED,
     GROUP_CLOSED,

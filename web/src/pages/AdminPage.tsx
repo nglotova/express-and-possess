@@ -1,12 +1,13 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
-import type { ContactMessageView, ContactTopic, ExpressionStatus, ExpressionView, MemberView, Role, User } from "../api/types";
+import type { ContactMessageView, ContactTopic, ExpressionView, MemberView, Role, User } from "../api/types";
 import { ErrorText, Field } from "../components/Form";
 import { PageHeader } from "../components/Layout";
 import { StatusChip } from "../components/StatusChip";
 import { formatTime } from "../components/format";
 import { useConfirm } from "../components/ConfirmDialog";
+import { ManageWish } from "../components/ManageWish";
 
 interface AdminGroupRow {
   id: number;
@@ -27,8 +28,6 @@ interface AdminGroupDetail {
 interface SiteSettings {
   invitationsPerDay: number;
 }
-
-const STATUSES: ExpressionStatus[] = ["EXPRESSED", "IN_PROCESS", "PROVIDED", "IN_POSSESSION"];
 
 /**
  * Section 11 of the spec: users, groups including archived ones, stuck expressions. Also the
@@ -195,50 +194,29 @@ function GroupExpressions({ id }: { id: number }) {
       <p className="muted small">Members: {detail.data.members.map((m) => m.name).join(", ")}</p>
       {detail.data.expressions.length === 0 && <p className="muted small">No expressions.</p>}
       {detail.data.expressions.map((e) => (
-        <ForceStatus key={e.id} expression={e} groupId={id} />
+        <AdminWish key={e.id} expression={e} groupId={id} members={detail.data.members} />
       ))}
     </div>
   );
 }
 
-function ForceStatus({ expression: e, groupId }: { expression: ExpressionView; groupId: number }) {
+function AdminWish({ expression: e, groupId, members }: { expression: ExpressionView; groupId: number; members: MemberView[] }) {
   const queryClient = useQueryClient();
-  const [status, setStatus] = useState<ExpressionStatus>(e.status);
-  const [reason, setReason] = useState("");
-  const force = useMutation({
-    mutationFn: () => api<ExpressionView>(`/api/admin/expressions/${e.id}/status`, "PUT", { status, reason }),
-    onSuccess: () => {
-      setReason("");
-      queryClient.invalidateQueries({ queryKey: ["admin", "groups", groupId] });
-    },
-  });
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ["admin", "groups", groupId] });
   return (
-    <form
-      onSubmit={(ev) => {
-        ev.preventDefault();
-        force.mutate();
-      }}
-      className="force-status"
-    >
+    <div className="admin-wish">
       <div>
         <strong>{e.description.split("\n")[0]}</strong> <span className="muted small">by {e.creator.name}</span>
-        {e.implementer && <span className="muted small"> · care: {e.implementer.name}</span>} <StatusChip status={e.status} />
+        {e.implementer && <span className="muted small"> · provided by {e.implementer.name}</span>} <StatusChip status={e.status} />
       </div>
-      <div className="inline-form three">
-        <select value={status} onChange={(ev) => setStatus(ev.target.value as ExpressionStatus)} aria-label="New status">
-          {STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-        <input value={reason} onChange={(ev) => setReason(ev.target.value)} placeholder="Reason (required)" required maxLength={500} aria-label="Reason" />
-        <button type="submit" disabled={force.isPending || status === e.status}>
-          Force
-        </button>
-      </div>
-      <ErrorText error={force.error} />
-    </form>
+      <ManageWish
+        key={`${e.status}:${e.implementer?.id ?? ""}`}
+        expression={e}
+        members={members.map((m) => ({ id: m.userId, name: m.name }))}
+        onChanged={refresh}
+        onDeleted={refresh}
+      />
+    </div>
   );
 }
 
