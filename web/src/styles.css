@@ -718,6 +718,10 @@ button.link.danger {
   color: var(--ink-2);
 }
 
+.comment-body {
+  overflow-wrap: anywhere;
+}
+
 .comment.system {
   color: var(--ink-2);
   font-style: italic;

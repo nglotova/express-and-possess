@@ -8,7 +8,7 @@ import { ErrorText, Field } from "../components/Form";
 import { PageHeader } from "../components/Layout";
 import { StatusChip } from "../components/StatusChip";
 import { formatDate, formatTime } from "../components/format";
-import { LinkList, findLinks, withoutLinks } from "../components/links";
+import { LinkList, LinkedText, findLinks, withoutLinks } from "../components/links";
 import { LinkPreviewCard } from "../components/LinkPreviewCard";
 import { useSettledFirstLink } from "../components/useDebounced";
 import { prepareImage } from "../components/image";
@@ -337,7 +337,9 @@ function Comments({ expression: e }: { expression: ExpressionView }) {
             <div className="comment-meta">
               {c.systemNote ? "System" : c.author?.name} · {formatTime(c.createdAt)}
             </div>
-            <div>{c.body}</div>
+            <div className="comment-body">
+              <LinkedText text={c.body} />
+            </div>
           </li>
         ))}
       </ul>

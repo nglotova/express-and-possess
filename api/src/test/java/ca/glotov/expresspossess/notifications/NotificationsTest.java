@@ -89,6 +89,38 @@ class NotificationsTest extends ApiTest {
     }
 
     @Test
+    void aCommentReachesEveryoneTakingPartExceptItsAuthor() throws Exception {
+        Member natasha = register("Natasha");
+        Member andrei = register("Andrei");
+        Member lev = register("Lev");
+        Member mila = register("Mila");
+        Member oleg = register("Oleg");
+        Member vera = register("Vera");
+        long group = family(natasha, andrei, lev, mila, oleg, vera);
+        long id = wish(natasha, group, "Board game");
+        postAs(andrei, "/api/expressions/" + id + "/take-care");
+        postAs(lev, "/api/expressions/" + id + "/comments", Map.of("body", "Which one?"));
+        postAs(vera, "/api/expressions/" + id + "/comments", Map.of("body", "Catan!"));
+        deleteAs(natasha, "/api/groups/" + group + "/members/" + vera.id());
+        for (Member member : new Member[] {natasha, andrei, lev, mila, oleg, vera}) {
+            postAs(member, "/api/notifications/read-all");
+        }
+
+        postAs(mila, "/api/expressions/" + id + "/comments", Map.of("body", "https://example.com/catan"));
+
+        for (Member participant : new Member[] {natasha, andrei, lev}) {
+            getAs(participant, "/api/notifications")
+                    .andExpect(jsonPath("$.unread").value(1))
+                    .andExpect(jsonPath("$.items[0].type").value("WISH_COMMENTED"))
+                    .andExpect(jsonPath("$.items[0].message").value("Mila commented on \"Board game\""));
+        }
+        // The author, a member who has not joined the conversation, and a commenter who has left.
+        for (Member outsider : new Member[] {mila, oleg, vera}) {
+            getAs(outsider, "/api/notifications").andExpect(jsonPath("$.unread").value(0));
+        }
+    }
+
+    @Test
     void deletingAWishInProcessTellsTheImplementer() throws Exception {
         Member natasha = register("Natasha");
         Member andrei = register("Andrei");

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findLinks, labelLinks, withoutLinks } from "./links";
+import { findLinks, labelLinks, splitLinks, withoutLinks } from "./links";
 
 describe("links in a description", () => {
   it("finds every address in order, once, without the sentence's punctuation", () => {
@@ -8,6 +8,17 @@ describe("links in a description", () => {
     expect(findLinks(text)).toEqual(["https://www.amazon.ca/gp/product/B0CMSYQM49", "https://shop.two/b"]);
     expect(findLinks("no link")).toEqual([]);
     expect(findLinks("half https://")).toEqual([]);
+  });
+
+  it("cuts a comment into text and addresses, leaving the punctuation in the text", () => {
+    expect(splitLinks("Look: https://shop.two/b. Or https://x.ca/a?c=1")).toEqual([
+      { text: "Look: " },
+      { text: "https://shop.two/b", url: "https://shop.two/b" },
+      { text: ". Or " },
+      { text: "https://x.ca/a?c=1", url: "https://x.ca/a?c=1" },
+    ]);
+    expect(splitLinks("no link, half https://")).toEqual([{ text: "no link, half https://" }]);
+    expect(splitLinks("")).toEqual([]);
   });
 
   it("gives the text without its addresses", () => {

@@ -11,9 +11,11 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
+import java.util.Set;
 
 /**
  * Who is told what, for each event: the table in section 12 of the spec. Runs inside the
@@ -71,9 +73,7 @@ class NotificationRules {
                             wish.groupId(), null);
                 }
             }
-            case COMMENTED -> send(NotificationType.WISH_COMMENTED, wish,
-                    Stream.of(wish.creatorId(), wish.implementerId())
-                            .filter(Objects::nonNull).filter(id -> !id.equals(event.actorId())).toList(),
+            case COMMENTED -> send(NotificationType.WISH_COMMENTED, wish, commentRecipients(wish, event.actorId()),
                     (actorIsHiddenHelper ? "Anonymous helper" : actor) + " commented on " + title);
         }
     }
@@ -91,6 +91,21 @@ class NotificationRules {
                     groups.memberIds(event.groupId()).stream().filter(id -> !id.equals(event.actorId())).toList(),
                     actor + " closed the group " + group, event.groupId(), null);
         }
+    }
+
+    /**
+     * Everyone taking part in the wish: its creator, its helper and whoever has commented on it,
+     * except the author of the new comment and anyone who has left the group since.
+     */
+    private List<Long> commentRecipients(ExpressionQueries.Facts wish, Long authorId) {
+        Set<Long> members = new HashSet<>(groups.memberIds(wish.groupId()));
+        Set<Long> participants = new LinkedHashSet<>();
+        participants.add(wish.creatorId());
+        if (wish.implementerId() != null) {
+            participants.add(wish.implementerId());
+        }
+        participants.addAll(expressions.commenterIds(wish.id()));
+        return participants.stream().filter(members::contains).filter(id -> !id.equals(authorId)).toList();
     }
 
     private void send(NotificationType type, ExpressionQueries.Facts wish, List<Long> recipients, String message) {

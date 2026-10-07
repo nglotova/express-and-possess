@@ -3,6 +3,7 @@ package ca.glotov.expresspossess.expressions;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -17,9 +18,11 @@ import java.util.Set;
 public class ExpressionQueries {
 
     private final ExpressionRepository expressions;
+    private final CommentRepository comments;
 
-    ExpressionQueries(ExpressionRepository expressions) {
+    ExpressionQueries(ExpressionRepository expressions, CommentRepository comments) {
         this.expressions = expressions;
+        this.comments = comments;
     }
 
     /** "Working" in the spec: at least one expression was ever created. */
@@ -40,6 +43,11 @@ public class ExpressionQueries {
     /** The mark on the Group users page. */
     public Set<Long> creatorsIn(Long groupId) {
         return expressions.creatorIdsIn(groupId);
+    }
+
+    /** Everyone who has commented on the expression. */
+    public List<Long> commenterIds(Long expressionId) {
+        return comments.findAuthorIds(expressionId);
     }
 
     /** What a notification needs to know about an expression. */

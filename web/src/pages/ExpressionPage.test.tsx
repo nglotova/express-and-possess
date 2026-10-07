@@ -121,6 +121,17 @@ describe("Expression page", () => {
     expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
   });
 
+  it("shows an address in a comment as a link that opens in a new tab", async () => {
+    renderWith({
+      ...base,
+      comments: [{ id: 1, author: { id: 2, name: "Andrei" }, body: "This one? https://shop.two/b.", systemNote: false, createdAt: "2026-09-14T10:00:00Z" }],
+    });
+    const link = await screen.findByRole("link", { name: "https://shop.two/b" });
+    expect(link).toHaveAttribute("href", "https://shop.two/b");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
   it("is read-only once the wish is in possession", async () => {
     renderWith({ ...base, status: "IN_POSSESSION", implementer: { id: 2, name: "Andrei" }, canTakeCare: false, commentsOpen: false });
     expect(await screen.findByText("In Possession")).toBeInTheDocument();

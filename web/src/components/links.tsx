@@ -13,6 +13,38 @@ export function findLinks(text: string): string[] {
   return Array.from(new Set(found));
 }
 
+/** The text cut into plain pieces and addresses, in order, so the addresses can be shown as links. */
+export function splitLinks(text: string): { text: string; url?: string }[] {
+  const parts: { text: string; url?: string }[] = [];
+  let rest = 0;
+  for (const match of text.matchAll(WEB_ADDRESS)) {
+    const url = match[0].replace(TRAILING, "");
+    if (url.indexOf("://") + 3 >= url.length) continue;
+    if (match.index > rest) parts.push({ text: text.slice(rest, match.index) });
+    parts.push({ text: url, url });
+    rest = match.index + url.length;
+  }
+  if (rest < text.length) parts.push({ text: text.slice(rest) });
+  return parts;
+}
+
+/** Text with every address in it turned into a link that opens in a new tab. */
+export function LinkedText({ text }: { text: string }) {
+  return (
+    <>
+      {splitLinks(text).map((part, i) =>
+        part.url ? (
+          <a key={i} href={part.url} target="_blank" rel="noopener noreferrer">
+            {part.text}
+          </a>
+        ) : (
+          part.text
+        ),
+      )}
+    </>
+  );
+}
+
 /** The text with its addresses taken out and the empty lines that leaves dropped. */
 export function withoutLinks(text: string): string {
   return text
