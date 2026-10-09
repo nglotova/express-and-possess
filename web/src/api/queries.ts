@@ -42,6 +42,15 @@ export function useGroup(id: number) {
   return useQuery({ queryKey: ["groups", id], queryFn: () => api<GroupDetail>(`/api/groups/${id}`) });
 }
 
+/** Every wish in the group, for its admin's page. */
+export function useGroupWishes(groupId: number, enabled: boolean) {
+  return useQuery({
+    queryKey: ["groups", groupId, "wishes"],
+    queryFn: () => api<ExpressionView[]>(`/api/groups/${groupId}/expressions`),
+    enabled,
+  });
+}
+
 export function useActivity(groupId: number) {
   return useQuery({
     queryKey: ["groups", groupId, "activity"],

@@ -757,10 +757,18 @@ button.link.danger {
   gap: 0.75rem;
 }
 
-.admin-wish {
+/* A long wish wraps beside its Manage button, which stays on the right of the first line. */
+.managed-row {
   display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.managed-wish {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 select {
@@ -885,10 +893,8 @@ select {
   text-decoration: underline;
 }
 
-.link-url {
-  display: block;
-  font-size: 0.78rem;
-  color: var(--ink-3);
+.link-name {
+  color: var(--ink-2);
   overflow-wrap: anywhere;
 }
 

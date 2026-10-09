@@ -49,12 +49,15 @@ class ExpressionController {
     record TakeCareRequest(boolean incognito) {
     }
 
-    /** The reason goes into a notification, whose message holds 500 characters in all. */
+    /**
+     * The reason goes into a notification, whose message holds 500 characters in all. The
+     * version is the one the admin saw, so a change made meanwhile is not overwritten unseen.
+     */
     record ManageStatusRequest(@NotNull ExpressionStatus status, Long providerId,
-                               @NotBlank @Size(max = 280) String reason) {
+                               @NotBlank @Size(max = 280) String reason, @NotNull Long version) {
     }
 
-    record ManageDeleteRequest(@NotBlank @Size(max = 280) String reason) {
+    record ManageDeleteRequest(@NotBlank @Size(max = 280) String reason, @NotNull Long version) {
     }
 
     @GetMapping("/groups/{groupId}/activity")
@@ -129,16 +132,22 @@ class ExpressionController {
 
     // ---- the site administrator, and the group admin in their group ---------------------
 
+    @GetMapping("/groups/{groupId}/expressions")
+    List<ExpressionView> manageList(@AuthenticationPrincipal AuthenticatedUser me, @PathVariable Long groupId) {
+        return expressions.manageList(groupId, me.getId());
+    }
+
     @PutMapping("/expressions/{id}/manage/status")
     ExpressionView manageStatus(@AuthenticationPrincipal AuthenticatedUser me, @PathVariable Long id,
                                 @Valid @RequestBody ManageStatusRequest body) {
-        return expressions.manageStatus(id, me.getId(), body.status(), body.providerId(), body.reason());
+        return expressions.manageStatus(id, me.getId(), body.status(), body.providerId(), body.reason(),
+                body.version());
     }
 
     @PostMapping("/expressions/{id}/manage/delete")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void manageDelete(@AuthenticationPrincipal AuthenticatedUser me, @PathVariable Long id,
                       @Valid @RequestBody ManageDeleteRequest body) {
-        expressions.manageDelete(id, me.getId(), body.reason());
+        expressions.manageDelete(id, me.getId(), body.reason(), body.version());
     }
 }

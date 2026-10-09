@@ -78,8 +78,6 @@ export interface ExpressionView {
   canRelease: boolean;
   canDelete: boolean;
   canMarkReceived: boolean;
-  /** The site administrator, or the admin of the open group: any status, and delete. */
-  canManage: boolean;
   commentsOpen: boolean;
   comments: CommentView[];
 }

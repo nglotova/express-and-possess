@@ -8,8 +8,6 @@ import java.util.List;
  * page uses to show or hide controls; the server enforces the same rules again on every
  * call. {@code incognito} is only reported truthfully to the implementer and to a site
  * administrator; everyone else sees false and an implementer named "Incognito".
- * {@code canManage} is for the site administrator and for the admin of an open group: any
- * status, and delete, whatever the wish's state.
  *
  * @param pictureFromLink the picture was taken from the first link in the description
  * @param picturePending  a picture is being fetched from that link; the page asks again until it ends
@@ -33,7 +31,6 @@ public record ExpressionView(Long id,
                              boolean canRelease,
                              boolean canDelete,
                              boolean canMarkReceived,
-                             boolean canManage,
                              boolean commentsOpen,
                              List<CommentView> comments) {
 }

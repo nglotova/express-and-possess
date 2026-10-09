@@ -67,7 +67,7 @@ public class ExpressionService {
     public ActivityView activity(Long groupId, Long viewerId) {
         groups.memberOf(groupId, viewerId);
         String groupName = groups.get(groupId, viewerId).name();
-        Viewer viewer = viewer(viewerId, groupId);
+        Viewer viewer = viewer(viewerId);
         return new ActivityView(groupId, groupName,
                 rows(expressions.findByGroupIdAndCreatorIdOrderByCreatedAtDesc(groupId, viewerId), viewer),
                 rows(expressions.findByGroupIdAndImplementerIdOrderByCreatedAtDesc(groupId, viewerId), viewer),
@@ -78,13 +78,13 @@ public class ExpressionService {
     @Transactional(readOnly = true)
     public List<ExpressionView> listByCreator(Long groupId, Long creatorId, Long viewerId) {
         groups.memberOf(groupId, viewerId);
-        return rows(expressions.findByGroupIdAndCreatorIdOrderByCreatedAtDesc(groupId, creatorId), viewer(viewerId, groupId));
+        return rows(expressions.findByGroupIdAndCreatorIdOrderByCreatedAtDesc(groupId, creatorId), viewer(viewerId));
     }
 
     @Transactional(readOnly = true)
     public ExpressionView get(Long id, Long viewerId) {
         Expression expression = visible(id, viewerId);
-        return view(expression, viewer(viewerId, expression.getGroupId()), comments.findByExpressionIdOrderByCreatedAt(id));
+        return view(expression, viewer(viewerId), comments.findByExpressionIdOrderByCreatedAt(id));
     }
 
     // ---- the creator's section -----------------------------------------------------
@@ -223,25 +223,35 @@ public class ExpressionService {
     public ExpressionView adminGet(Long id) {
         Expression expression = expressions.findById(id)
                 .orElseThrow(() -> ApiException.notFound("No such expression"));
-        return view(expression, new Viewer(null, true, false), comments.findByExpressionIdOrderByCreatedAt(id));
+        return view(expression, new Viewer(null, true), comments.findByExpressionIdOrderByCreatedAt(id));
     }
 
     @Transactional(readOnly = true)
     public List<ExpressionView> adminListInGroup(Long groupId) {
-        return rows(expressions.findByGroupIdOrderByCreatedAtDesc(groupId), new Viewer(null, true, false));
+        return rows(expressions.findByGroupIdOrderByCreatedAtDesc(groupId), new Viewer(null, true));
     }
 
     // ---- managing a wish: the site administrator anywhere, the group admin in their group
+
+    /** Every wish in the group, newest first, for the list on the group admin's page. */
+    @Transactional(readOnly = true)
+    public List<ExpressionView> manageList(Long groupId, Long userId) {
+        requireManager(groupId, userId);
+        return rows(expressions.findByGroupIdOrderByCreatedAtDesc(groupId), viewer(userId));
+    }
 
     /**
      * Sets any status, whatever the wish's state; for a member who left, a gift bought outside
      * the app, or anything else the usual buttons cannot reach. Going back to Expressed clears
      * the provider. Going forward from Expressed needs one: a member of the group, chosen by the
      * admin. The reason is written as a system note for everyone and sent to those concerned.
+     * The version is the one the admin's page showed: another admin, or a member, may have
+     * changed the wish since.
      */
     public ExpressionView manageStatus(Long id, Long managerId, ExpressionStatus status, Long providerId,
-                                       String reason) {
+                                       String reason, long version) {
         Expression expression = manageable(id, managerId);
+        requireVersion(expression, version);
         if (expression.is(status)) {
             throw ApiException.conflict("The wish is already " + status.label());
         }
@@ -267,9 +277,13 @@ public class ExpressionService {
         return managerView(expression, managerId);
     }
 
-    /** Deletes the wish whatever its state, telling its creator and provider why. */
-    public void manageDelete(Long id, Long managerId, String reason) {
+    /**
+     * Deletes the wish whatever its state, telling its creator and provider why. Refused when
+     * the wish changed since the admin's page showed it.
+     */
+    public void manageDelete(Long id, Long managerId, String reason, long version) {
         Expression expression = manageable(id, managerId);
+        requireVersion(expression, version);
         events.publishEvent(new ExpressionChanged(ExpressionChanged.Type.REMOVED_BY_ADMIN, id, expression.getGroupId(),
                 managerId, expression.getImplementerId(), reason.trim()));
         expressions.delete(expression);
@@ -280,12 +294,16 @@ public class ExpressionService {
         Expression expression = expressions.findById(id)
                 .orElseThrow(() -> ApiException.notFound("No such expression"));
         if (!isSystemAdmin(userId)) {
-            groups.memberOf(expression.getGroupId(), userId);
-            if (!groups.managesWishes(expression.getGroupId(), userId)) {
-                throw ApiException.forbidden("Only the group admin can do this, while the group is open");
-            }
+            requireManager(expression.getGroupId(), userId);
         }
         return expression;
+    }
+
+    private void requireManager(Long groupId, Long userId) {
+        groups.memberOf(groupId, userId);
+        if (!groups.managesWishes(groupId, userId)) {
+            throw ApiException.forbidden("Only the group admin can do this, while the group is open");
+        }
     }
 
     private void requireProvider(Expression expression, Long providerId) {
@@ -338,12 +356,11 @@ public class ExpressionService {
         return get(id, userId);
     }
 
-    /** @param groupManager the admin of the open group the wishes are in */
-    private record Viewer(Long id, boolean systemAdmin, boolean groupManager) {
+    private record Viewer(Long id, boolean systemAdmin) {
     }
 
-    private Viewer viewer(Long userId, Long groupId) {
-        return new Viewer(userId, isSystemAdmin(userId), groups.managesWishes(groupId, userId));
+    private Viewer viewer(Long userId) {
+        return new Viewer(userId, isSystemAdmin(userId));
     }
 
     private boolean isSystemAdmin(Long userId) {
@@ -391,7 +408,6 @@ public class ExpressionService {
                 open && implementing && e.is(IN_PROCESS),
                 open && creator && !e.is(PROVIDED),
                 open && creator && e.is(PROVIDED),
-                viewer.systemAdmin() || viewer.groupManager(),
                 open,
                 commentList.stream().map(c -> new CommentView(
                         c.getId(),

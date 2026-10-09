@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findLinks, labelLinks, splitLinks, withoutLinks } from "./links";
+import { findLinks, labelLinks, nameFromAddress, splitLinks, wishTitle, withoutLinks } from "./links";
 
 describe("links in a description", () => {
   it("finds every address in order, once, without the sentence's punctuation", () => {
@@ -31,5 +31,22 @@ describe("links in a description", () => {
       { url: "https://shop.two/b", label: "shop.two" },
       { url: "https://amazon.ca/c", label: "amazon.ca 2" },
     ]);
+  });
+
+  it("reads the product's name from the address, ignoring the tracking codes", () => {
+    expect(
+      nameFromAddress(
+        "https://www.amazon.ca/Angel-Kiss-Crossbody-Hobo-Tote-Hobo-Shoulder/dp/B09PZXRZ68/ref=mp_s_a_1_2_sspa?crid=34GB&sp_csd=d2lk",
+      ),
+    ).toBe("Angel Kiss Crossbody Hobo Tote Hobo Shoulder");
+    expect(nameFromAddress("https://www.sephora.com/ca/en/product/glow-toner-P123456.html")).toBe("glow toner P123456");
+    expect(nameFromAddress("https://www.amazon.ca/gp/product/B0CMSYQM49")).toBeNull();
+    expect(nameFromAddress("https://shop.two/b")).toBeNull();
+  });
+
+  it("titles a wish by its text, or else by what its first address names", () => {
+    expect(wishTitle("Toner\nsoft pink https://shop.two/b")).toBe("Toner");
+    expect(wishTitle("https://www.amazon.ca/Angel-Kiss-Tote/dp/B09PZXRZ68")).toBe("Angel Kiss Tote");
+    expect(wishTitle("https://shop.two/b")).toBe("shop.two");
   });
 });

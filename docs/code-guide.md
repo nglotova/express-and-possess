@@ -182,8 +182,9 @@ The pages involved:
 - [`ConfirmDialog.tsx`](../web/src/components/ConfirmDialog.tsx): the "Are you sure?" box used before
   deleting, releasing, removing or closing.
 - [`StatusChip.tsx`](../web/src/components/StatusChip.tsx): the coloured stage labels.
-- [`ManageWish.tsx`](../web/src/components/ManageWish.tsx): the admin's stage and delete controls, shown
-  on the Administration page and, for the group admin, at the bottom of `ExpressionPage.tsx`.
+- [`ManageWish.tsx`](../web/src/components/ManageWish.tsx): a group's wishes with the admin's stage and
+  delete controls, shown on the Administration page and, for the group admin, on the Edit group page
+  ([`GroupEditPage.tsx`](../web/src/pages/GroupEditPage.tsx)).
 
 Who sees what is decided on the server, in the part of `ExpressionService` that builds an
 [`ExpressionView`](../api/src/main/java/ca/glotov/expresspossess/expressions/ExpressionView.java). The
@@ -193,7 +194,9 @@ reaches the other members' browsers.
 
 When two people edit the same wish at once, the version number in
 [`Expression.java`](../api/src/main/java/ca/glotov/expresspossess/expressions/Expression.java) catches
-it: the second save is refused rather than silently overwriting the first.
+it: the second save is refused rather than silently overwriting the first. The admin's controls send
+the version too, so the site administrator and the group admin cannot overwrite each other's change,
+or a member's, without seeing it first.
 
 ### Comments
 

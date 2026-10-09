@@ -4,10 +4,9 @@ import { api } from "../api/client";
 import type { ContactMessageView, ContactTopic, ExpressionView, MemberView, Role, User } from "../api/types";
 import { ErrorText, Field } from "../components/Form";
 import { PageHeader } from "../components/Layout";
-import { StatusChip } from "../components/StatusChip";
 import { formatTime } from "../components/format";
 import { useConfirm } from "../components/ConfirmDialog";
-import { ManageWish } from "../components/ManageWish";
+import { ManagedWishes } from "../components/ManageWish";
 
 interface AdminGroupRow {
   id: number;
@@ -186,35 +185,18 @@ function Groups() {
 }
 
 function GroupExpressions({ id }: { id: number }) {
+  const queryClient = useQueryClient();
   const detail = useQuery({ queryKey: ["admin", "groups", id], queryFn: () => api<AdminGroupDetail>(`/api/admin/groups/${id}`) });
   if (detail.isPending) return <p className="muted">Loading…</p>;
   if (!detail.data) return <p className="error">Not available.</p>;
   return (
     <div className="admin-expressions">
       <p className="muted small">Members: {detail.data.members.map((m) => m.name).join(", ")}</p>
-      {detail.data.expressions.length === 0 && <p className="muted small">No expressions.</p>}
-      {detail.data.expressions.map((e) => (
-        <AdminWish key={e.id} expression={e} groupId={id} members={detail.data.members} />
-      ))}
-    </div>
-  );
-}
-
-function AdminWish({ expression: e, groupId, members }: { expression: ExpressionView; groupId: number; members: MemberView[] }) {
-  const queryClient = useQueryClient();
-  const refresh = () => queryClient.invalidateQueries({ queryKey: ["admin", "groups", groupId] });
-  return (
-    <div className="admin-wish">
-      <div>
-        <strong>{e.description.split("\n")[0]}</strong> <span className="muted small">by {e.creator.name}</span>
-        {e.implementer && <span className="muted small"> · provided by {e.implementer.name}</span>} <StatusChip status={e.status} />
-      </div>
-      <ManageWish
-        key={`${e.status}:${e.implementer?.id ?? ""}`}
-        expression={e}
-        members={members.map((m) => ({ id: m.userId, name: m.name }))}
-        onChanged={refresh}
-        onDeleted={refresh}
+      <ManagedWishes
+        wishes={detail.data.expressions}
+        members={detail.data.members.map((m) => ({ id: m.userId, name: m.name }))}
+        linkToWish={false}
+        onChange={() => queryClient.invalidateQueries({ queryKey: ["admin", "groups", id] })}
       />
     </div>
   );

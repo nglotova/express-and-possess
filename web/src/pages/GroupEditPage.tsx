@@ -2,12 +2,13 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "../api/client";
-import { useGroup, useInvalidateGroups, useMe } from "../api/queries";
+import { useGroup, useGroupWishes, useInvalidateGroups, useMe } from "../api/queries";
 import type { GroupDetail } from "../api/types";
 import { ErrorText, Field } from "../components/Form";
 import { PageHeader } from "../components/Layout";
 import { GroupStatusChip } from "../components/StatusChip";
 import { useConfirm } from "../components/ConfirmDialog";
+import { ManagedWishes } from "../components/ManageWish";
 
 /**
  * Create a group, or edit one. The admin manages members here: invitations by email, the
@@ -70,6 +71,7 @@ function EditGroup({ id }: { id: number }) {
         <>
           <Invite group={g} />
           <ShareLink group={g} />
+          <Wishes group={g} />
         </>
       )}
       <Lifecycle group={g} />
@@ -265,6 +267,33 @@ function ShareLink({ group }: { group: GroupDetail }) {
         <p className="muted">The link was created earlier. Untick and tick again to make a new one.</p>
       )}
       <ErrorText error={toggle.error} />
+    </section>
+  );
+}
+
+/** The admin's controls for every wish in the group, the same as on the Administration page. */
+function Wishes({ group }: { group: GroupDetail }) {
+  const wishes = useGroupWishes(group.id, true);
+  const invalidate = useInvalidateGroups();
+  return (
+    <section className="section">
+      <h2>Wishes</h2>
+      <p className="muted">
+        As the group admin, you can set any status on a wish or delete it, for example when a member has left the
+        group.
+      </p>
+      {wishes.isPending ? (
+        <p className="muted">Loading…</p>
+      ) : wishes.isError ? (
+        <ErrorText error={wishes.error} />
+      ) : (
+        <ManagedWishes
+          wishes={wishes.data}
+          members={group.members.map((m) => ({ id: m.userId, name: m.name }))}
+          linkToWish
+          onChange={invalidate}
+        />
+      )}
     </section>
   );
 }

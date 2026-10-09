@@ -26,7 +26,6 @@ const base: ExpressionView = {
   canRelease: false,
   canDelete: false,
   canMarkReceived: false,
-  canManage: false,
   commentsOpen: true,
   comments: [],
 };
@@ -35,14 +34,7 @@ function renderWith(view: ExpressionView) {
   vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
     const url = String(input);
     const body = url.includes("/api/groups/")
-      ? {
-          id: 1,
-          name: "Family",
-          members: [
-            { userId: 1, name: "Natasha" },
-            { userId: 2, name: "Andrei" },
-          ],
-        }
+      ? { id: 1, name: "Family", members: [] }
       : url.includes("/api/link-preview")
         ? { url: "", site: "", title: "Preview title", pictureUrl: null }
         : view;
@@ -138,39 +130,6 @@ describe("Expression page", () => {
     expect(link).toHaveAttribute("href", "https://shop.two/b");
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
-  });
-
-  it("lets an admin move a wish nobody took to Provided, naming who provided it", async () => {
-    renderWith({ ...base, canTakeCare: false, canManage: true });
-    expect(await screen.findByRole("heading", { name: "Admin" })).toBeInTheDocument();
-    const change = screen.getByRole("button", { name: "Change status" });
-    expect(change).toBeDisabled();
-    expect(screen.queryByLabelText(/^Provided by/)).not.toBeInTheDocument();
-
-    fireEvent.change(screen.getByLabelText(/^Status/), { target: { value: "PROVIDED" } });
-    const provider = screen.getByLabelText(/^Provided by/);
-    // The creator cannot provide their own wish.
-    expect(within(provider).queryByRole("option", { name: "Natasha" })).not.toBeInTheDocument();
-    await waitFor(() => expect(within(provider).getByRole("option", { name: "Andrei" })).toBeInTheDocument());
-    fireEvent.change(provider, { target: { value: "2" } });
-    fireEvent.change(screen.getByLabelText(/^Reason/), { target: { value: "Bought in a shop" } });
-    fireEvent.click(change);
-
-    await waitFor(() =>
-      expect(fetch).toHaveBeenCalledWith(
-        "/api/expressions/7/manage/status",
-        expect.objectContaining({
-          method: "PUT",
-          body: JSON.stringify({ status: "PROVIDED", providerId: 2, reason: "Bought in a shop" }),
-        }),
-      ),
-    );
-  });
-
-  it("has no admin section for a member who is not an admin", async () => {
-    renderWith(base);
-    expect(await screen.findByRole("heading", { name: "Comments" })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Admin" })).not.toBeInTheDocument();
   });
 
   it("is read-only once the wish is in possession", async () => {

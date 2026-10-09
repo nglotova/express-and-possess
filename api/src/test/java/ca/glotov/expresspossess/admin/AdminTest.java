@@ -95,22 +95,19 @@ class AdminTest extends ApiTest {
 
         // The administrator sees the real implementer.
         getAs(admin, "/api/admin/expressions/" + id).andExpect(jsonPath("$.implementer.name").value("Andrei"));
-        getAs(admin, "/api/admin/groups/" + group)
-                .andExpect(jsonPath("$.expressions[0].implementer.name").value("Andrei"))
-                .andExpect(jsonPath("$.expressions[0].canManage").value(true));
+        getAs(admin, "/api/admin/groups/" + group).andExpect(jsonPath("$.expressions[0].implementer.name").value("Andrei"));
 
-        putAs(admin, "/api/expressions/" + id + "/manage/status", Map.of("status", "PROVIDED", "reason", "Andrei says it arrived"))
+        putAs(admin, "/api/expressions/" + id + "/manage/status", Map.of("version", version(natasha, id), "status", "PROVIDED", "reason", "Andrei says it arrived"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PROVIDED"));
         getAs(natasha, "/api/expressions/" + id)
                 .andExpect(jsonPath("$.status").value("PROVIDED"))
-                .andExpect(jsonPath("$.canManage").value(true))
                 .andExpect(jsonPath("$.comments[0].systemNote").value(true))
                 .andExpect(jsonPath("$.comments[0].body").value("Sysadmin set the status to Provided: Andrei says it arrived"));
 
-        putAs(admin, "/api/expressions/" + id + "/manage/status", Map.of("status", "EXPRESSED", "reason", "Never mind"))
+        putAs(admin, "/api/expressions/" + id + "/manage/status", Map.of("version", version(natasha, id), "status", "EXPRESSED", "reason", "Never mind"))
                 .andExpect(jsonPath("$.implementer").isEmpty());
-        putAs(admin, "/api/expressions/" + id + "/manage/status", Map.of("status", "PROVIDED", "reason", ""))
+        putAs(admin, "/api/expressions/" + id + "/manage/status", Map.of("version", version(natasha, id), "status", "PROVIDED", "reason", ""))
                 .andExpect(status().isBadRequest());
     }
 
@@ -125,13 +122,13 @@ class AdminTest extends ApiTest {
         long id = bodyOf(postAs(natasha, "/api/groups/" + group + "/expressions", Map.of("description", "Shoes"))).get("id").asLong();
         String path = "/api/expressions/" + id + "/manage/status";
 
-        putAs(admin, path, Map.of("status", "PROVIDED", "reason", "Bought in a shop")).andExpect(status().isBadRequest());
-        putAs(admin, path, Map.of("status", "PROVIDED", "providerId", natasha.id(), "reason", "Bought in a shop"))
+        putAs(admin, path, Map.of("version", version(natasha, id), "status", "PROVIDED", "reason", "Bought in a shop")).andExpect(status().isBadRequest());
+        putAs(admin, path, Map.of("version", version(natasha, id), "status", "PROVIDED", "providerId", natasha.id(), "reason", "Bought in a shop"))
                 .andExpect(status().isBadRequest());
-        putAs(admin, path, Map.of("status", "PROVIDED", "providerId", stranger.id(), "reason", "Bought in a shop"))
+        putAs(admin, path, Map.of("version", version(natasha, id), "status", "PROVIDED", "providerId", stranger.id(), "reason", "Bought in a shop"))
                 .andExpect(status().isBadRequest());
 
-        putAs(admin, path, Map.of("status", "PROVIDED", "providerId", andrei.id(), "reason", "Bought in a shop"))
+        putAs(admin, path, Map.of("version", version(natasha, id), "status", "PROVIDED", "providerId", andrei.id(), "reason", "Bought in a shop"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.implementer.name").value("Andrei"));
         getAs(natasha, "/api/expressions/" + id)
@@ -150,13 +147,18 @@ class AdminTest extends ApiTest {
         long group = bodyOf(postAs(natasha, "/api/groups", Map.of("name", "Family"))).get("id").asLong();
         long id = bodyOf(postAs(natasha, "/api/groups/" + group + "/expressions", Map.of("description", "Shoes"))).get("id").asLong();
 
-        postAs(admin, "/api/expressions/" + id + "/manage/delete", Map.of("reason", "")).andExpect(status().isBadRequest());
-        postAs(admin, "/api/expressions/" + id + "/manage/delete", Map.of("reason", "Posted twice"))
+        postAs(admin, "/api/expressions/" + id + "/manage/delete", Map.of("version", version(natasha, id), "reason", "")).andExpect(status().isBadRequest());
+        postAs(admin, "/api/expressions/" + id + "/manage/delete", Map.of("version", version(natasha, id), "reason", "Posted twice"))
                 .andExpect(status().isNoContent());
 
         getAs(natasha, "/api/expressions/" + id).andExpect(status().isNotFound());
         getAs(natasha, "/api/notifications")
                 .andExpect(jsonPath("$.items[0].message").value("Sysadmin deleted the wish \"Shoes\": Posted twice"));
+    }
+
+    /** The wish's version as a member's page shows it; the admin's controls send it back. */
+    private long version(Member member, long id) throws Exception {
+        return bodyOf(getAs(member, "/api/expressions/" + id)).get("version").asLong();
     }
 
     /** The role is read at login, so a promoted account needs a fresh session. */
